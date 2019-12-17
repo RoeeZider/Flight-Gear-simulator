@@ -108,31 +108,3 @@ void lexer(vector<string> &arr, string line) {
         arr.push_back("EOL");
     }
 }
-
-
-
-void build_parameters_map() {
-    symbol_table["airspeed-indicator_indicated-speed-kt"] = make_pair(0,"");
-    symbol_table["altimeter_indicated-altitude-ft"] = make_pair(0,"");
-    symbol_table["altimeter_pressure-alt-ft"] = make_pair(0,"");
-    symbol_table["attitude-indicator_indicated-pitch-deg"] = make_pair(0,"");
-    symbol_table["attitude-indicator_indicated-roll-deg"] = make_pair(0,"");
-    symbol_table["attitude-indicator_internal-pitch-deg"] = make_pair(0,"");
-    symbol_table["attitude-indicator_internal-roll-deg"] = make_pair(0,"");
-    symbol_table["encoder_indicated-altitude-ft"] = make_pair(0,"");
-    symbol_table["encoder_pressure-alt-ft"] = make_pair(0,"");
-    symbol_table["gps_indicated-altitude-ft"] = make_pair(0,"");
-    symbol_table["gps_indicated-ground-speed-kt"] = make_pair(0,"");
-    symbol_table["gps_indicated-vertical-speed"] = make_pair(0,"");
-    symbol_table["indicated-heading-deg"] = make_pair(0,"");
-    symbol_table["magnetic-compass_indicated-heading-deg"] = make_pair(0,"");
-    symbol_table["slip-skid-ball_indicated-slip-skid"] = make_pair(0,"");
-    symbol_table["turn-indicator_indicated-turn-rate"] = make_pair(0,"");
-    symbol_table["vertical-speed-indicator_indicated-speed-fpm"] = make_pair(0,"");
-    symbol_table["flight_aileron"] = make_pair(0,"");
-    symbol_table["flight_elevator"] = make_pair(0,"");
-    symbol_table["flight_rudder"] = make_pair(0,"");
-    symbol_table["flight_flaps"] = make_pair(0,"");
-    symbol_table["engine_throttle"] = make_pair(0,"");
-    symbol_table["engine_rpm"] = make_pair(0,"");
-}
