@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "Expression.h"
+#include <queue>
+#include <list>
 
 using namespace std;
 

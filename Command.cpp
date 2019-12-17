@@ -41,6 +41,8 @@ int OpenServerCommand::execute(vector<string> vec) {
     } else{
         std::cout<<"Server is now listening ..."<<std::endl;
     }
+
+    //when we will end the loop?
     while (true) {
         new_socket = accept(server_fd, (struct sockaddr *) &address,
                             (socklen_t *) &addrlen);
@@ -54,9 +56,14 @@ int OpenServerCommand::execute(vector<string> vec) {
             it->second.first = val;
             s=s.substr(pos+1);
         }
-
-        return 0;
     }
 
+    return 0;
+
+
 }
+
+
+
+
 

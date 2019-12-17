@@ -73,7 +73,7 @@ void lexer(vector<string> &arr, string line) {
         }
         arr.push_back("Print");
         arr.push_back(word2);
-        arr.push_back("EOL\n");
+        arr.push_back("EOL");
         word2 = "";
     }
         //maybe in the regular case
@@ -91,7 +91,7 @@ void lexer(vector<string> &arr, string line) {
         word2 = word2.substr(0, word2.length() - 1);
         arr.push_back(word2);
         arr.push_back("{");
-        arr.push_back("EOL\n");
+        arr.push_back("EOL");
         word2 = "";
     } else {
         for (int i = 0; i < line.length(); i++) {
@@ -108,6 +108,8 @@ void lexer(vector<string> &arr, string line) {
         arr.push_back("EOL");
     }
 }
+
+
 
 void build_parameters_map() {
     symbol_table["airspeed-indicator_indicated-speed-kt"] = make_pair(0,"");
