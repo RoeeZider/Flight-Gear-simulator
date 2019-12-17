@@ -13,12 +13,14 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unordered_map>
+#include <sstream>
 
 
 int OpenServerCommand::execute(vector<string> vec) {
     int port = stoi(vec[1]);
     stringstream str;
     string s;
+    symbolTable *symtble=symbolTable::getInstance();
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     int new_socket;
@@ -29,26 +31,30 @@ int OpenServerCommand::execute(vector<string> vec) {
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
-    int b = bind(server_fd, (struct sockaddr *) &address, sizeof(address));
-    int l = listen(server_fd, 3);
-    while (flag == true) {
+    if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) == -1) {
+        std::cerr<<"Could not bind the socket to an IP"<<std::endl;
+        return -2;
+    }
+    if (listen(server_fd, 5) == -1) { //can also set to SOMAXCON (max connections)
+        std::cerr<<"Error during listening command"<<std::endl;
+        return -3;
+    } else{
+        std::cout<<"Server is now listening ..."<<std::endl;
+    }
+    while (true) {
         new_socket = accept(server_fd, (struct sockaddr *) &address,
                             (socklen_t *) &addrlen);
         valread = read(new_socket, buffer, 1024);
         printf("%s\n", buffer);
         str<<buffer;
         s=str.str();
-        for(auto it=parameters.begin();it<parameters.end();it++){
-            int pos=s.find(",");
-            int val=stoi(s.substr(0,pos-1));
-            parameters.it->second=val;
-
-
-
+        for(auto it=symbolTable::symbol_table.begin();it!=symbolTable::symbol_table.end();it++){
+            int pos = s.find(",");
+            int val = stoi(s.substr(0, pos - 1));
+            it->second.first = val;
+            s=s.substr(pos+1);
         }
 
-        //send(new_socket, hello, strlen(hello), 0);
-        // printf("Hello message sent\n");
         return 0;
     }
 
