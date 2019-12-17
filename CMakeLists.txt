@@ -3,4 +3,4 @@ project(updatedSim)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(updatedSim main.cpp)
+add_executable(updatedSim main.cpp Command.cpp Command.h)
