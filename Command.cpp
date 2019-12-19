@@ -3,7 +3,7 @@
 //
 
 #include <sys/socket.h>
-#include <bits/socket_type.h>
+
 #include <bits/socket.h>
 #include <netinet/in.h>
 #include "Command.h"
@@ -16,17 +16,22 @@
 #include <sstream>
 
 
-int OpenServerCommand::execute(vector<string> vec) {
+
+int OpenServerCommand::execute(vector<string> vec){
+    //if expression :
+    //else
     int port = stoi(vec[1]);
     stringstream str;
     string s;
-    symbolTable *symtble=symbolTable::getInstance();
+
     struct sockaddr_in address;
     int addrlen = sizeof(address);
-    int new_socket;
+    int client_socket;
     int valread;
     char buffer[1024] = {0};
-    bool flag = true;
+
+    //bind socket to IP address
+    // we first need to create the sockaddr obj.
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -41,29 +46,35 @@ int OpenServerCommand::execute(vector<string> vec) {
     } else{
         std::cout<<"Server is now listening ..."<<std::endl;
     }
-
+    client_socket = accept(server_fd, (struct sockaddr *) &address,
+                        (socklen_t *) &addrlen);
+    if (client_socket == -1) {
+        std::cerr<<"Error accepting client"<<std::endl;
+        return -4;
+    }
+    valread = read(client_socket, buffer, 1024);
     //when we will end the loop?
-    while (true) {
-        new_socket = accept(server_fd, (struct sockaddr *) &address,
-                            (socklen_t *) &addrlen);
-        valread = read(new_socket, buffer, 1024);
-        printf("%s\n", buffer);
+    symbolTable* table= symbolTable::getInstance();
+    while (valread>0) {
+
+        //printf("%s\n", buffer);
         str<<buffer;
         s=str.str();
-        for(auto it=symbolTable::symbol_table.begin();it!=symbolTable::symbol_table.end();it++){
+        for(auto it=table->symbol_table_from_simulator.begin();it!=table->symbol_table_from_simulator.end();it++){
             int pos = s.find(",");
             int val = stoi(s.substr(0, pos - 1));
             it->second.first = val;
             s=s.substr(pos+1);
+            valread = read(client_socket, buffer, 1024);
         }
     }
-
-    return 0;
-
-
+    close(server_fd);
+    //num of jumping
+return 3;
 }
-
-
-
-
-
+int ConnectCommand::execute(vector<string> vec){
+return 3;
+}
+int DefineVarCommand::execute(vector<string> vec){
+return 6;
+}

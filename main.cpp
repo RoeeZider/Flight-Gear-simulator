@@ -6,12 +6,15 @@
 #include "Command.h"
 
 using namespace std;
-
+//declarations
 void lexer(vector<string> &arr, string line);
+map<string,Command*> buildMapCommands();
+void parser(vector<string> &commands, map<string, Command *> &commandsMap);
 
 
 int main() {
     vector<string> commands;
+    map<string,Command*> mapCommands = buildMapCommands();
     //change for main argv[1]
     std::ifstream file("fly.txt");
     if (file.is_open()) {
@@ -26,13 +29,15 @@ int main() {
 
     std::cout << "myvector contains:";
     for (std::vector<string>::iterator it = commands.begin(); it != commands.end(); ++it)
-        std::cout << ' ' << *it;
+        std::cout << *it +','<< endl;
     std::cout << '\n';
+
+    parser(commands,mapCommands);
 
     return 0;
 }
 
-void Parser(vector<string> commands, map<string, Command> commandsMap) {
+void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
     vector<string> temp;
     int index = 0;
     for (vector<string>::iterator it = commands.begin(); it != commands.end(); ++it) {
@@ -40,11 +45,17 @@ void Parser(vector<string> commands, map<string, Command> commandsMap) {
             temp.push_back(*it);
             ++it;
         }
-        auto ite = commandsMap.find(commands[index]);
-        Command *c = ite->second;
+
+        Command* c =commandsMap.at(commands[index]);
+       // c== &commandsMap.at(commands[index]);
+
         if (c != NULL) {
             index += c->execute(temp);
         }
+
+
+//no memory allocating
+        temp.resize(0);
     }
 }
 
@@ -76,8 +87,8 @@ void lexer(vector<string> &arr, string line) {
         arr.push_back("EOL");
         word2 = "";
     }
-        //maybe in the regular case
 
+//check 'if' case
 
     else if (word.compare("while") == 0) {
         for (int i = 6; i < line.length(); i++) {
@@ -93,9 +104,9 @@ void lexer(vector<string> &arr, string line) {
         arr.push_back("{");
         arr.push_back("EOL");
         word2 = "";
-    } else {
+    } else if(word.compare("var")==0){
         for (int i = 0; i < line.length(); i++) {
-            while (line[i] != ' ' && line[i] != '(' && line[i] != ')' && line[i] != '\n') {
+            while (line[i] != ' ' && line[i] != '(' && line[i] != ')' && line[i] != '\n' && line[i] !='\t' ) {
                 if (i >= line.length()) {
                     break;
                 }
@@ -107,4 +118,35 @@ void lexer(vector<string> &arr, string line) {
         }
         arr.push_back("EOL");
     }
+    else {
+        for(int i =0;i<line.length();i++) {
+            while (line[i]!= '='&& line[i] != '(' && line[i] != ')'&& line[i] != '\n') {
+                if (i >= line.length()) {
+                    break;
+                }
+                word2 = word2 + line[i];
+                i++;
+            }
+            if(line[i]=='=') {
+                arr.push_back(word2);
+                word2="";
+                arr.push_back("=");
+            }
+            else {
+                arr.push_back(word2);
+                word2 = "";
+            }
+        }
+        arr.push_back("EOL");
+    }
+}
+map<string,Command*> buildMapCommands() {
+    map<string,Command*> my_map;
+    my_map.insert(make_pair("openDataServer",new OpenServerCommand()));
+    my_map.insert(make_pair("connectControlClient",new ConnectCommand()));
+    my_map.insert(make_pair("var",new DefineVarCommand()));
+
+    //need more to condition , print , and sleep
+
+    return my_map;
 }
