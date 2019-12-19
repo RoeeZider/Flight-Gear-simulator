@@ -45,15 +45,11 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
             temp.push_back(*it);
             ++it;
         }
-
         Command* c =commandsMap.at(commands[index]);
        // c== &commandsMap.at(commands[index]);
-
         if (c != NULL) {
             index += c->execute(temp);
         }
-
-
 //no memory allocating
         temp.resize(0);
     }
@@ -145,6 +141,7 @@ map<string,Command*> buildMapCommands() {
     my_map.insert(make_pair("openDataServer",new OpenServerCommand()));
     my_map.insert(make_pair("connectControlClient",new ConnectCommand()));
     my_map.insert(make_pair("var",new DefineVarCommand()));
+    my_map.insert(make_pair("breaks",new DefineVarCommand()));
 
     //need more to condition , print , and sleep
 
