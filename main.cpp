@@ -3,18 +3,25 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cstring>
 #include "Command.h"
 
 using namespace std;
 //declarations
+static map<string, double> symbol_table_from_simulator;
+static map<string,Var*> symbol_table_from_text;
 void lexer(vector<string> &arr, string line);
 map<string,Command*> buildMapCommands();
 void parser(vector<string> &commands, map<string, Command *> &commandsMap);
+void buildMapSimulator();
 
 
 int main() {
     vector<string> commands;
     map<string,Command*> mapCommands = buildMapCommands();
+
+    buildMapSimulator();
+
     //change for main argv[1]
     std::ifstream file("fly.txt");
     if (file.is_open()) {
@@ -50,7 +57,7 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
         if (c != NULL) {
             index += c->execute(temp);
         }
-//no memory allocating
+        //no memory allocating
         temp.resize(0);
     }
 }
@@ -59,7 +66,8 @@ void lexer(vector<string> &arr, string line) {
     int j = 0;
     string word;
     string word2;
-    vector<string> vec2;
+    vector<string> vec2;  static map<string, double> symbol_table_from_simulator;
+    static map<string,Var*> symbol_table_from_text;
     for (int i = 0; i < line.length(); i++) {
         while (line[i] != ' ' && line[i] != '(') {
             word = word + line[i];
@@ -138,12 +146,39 @@ void lexer(vector<string> &arr, string line) {
 }
 map<string,Command*> buildMapCommands() {
     map<string,Command*> my_map;
-    my_map.insert(make_pair("openDataServer",new OpenServerCommand()));
-    my_map.insert(make_pair("connectControlClient",new ConnectCommand()));
-    my_map.insert(make_pair("var",new DefineVarCommand()));
-    my_map.insert(make_pair("breaks",new DefineVarCommand()));
+  // my_map.insert(make_pair("openDataServer",new OpenServerCommand(symbol_table_from_simulator)));
+   // my_map.insert(make_pair("connectControlClient",new ConnectCommand(symbol_table_from_simulator,symbol_table_from_text)));
+   my_map.insert(make_pair("var",new DefineVarCommand(symbol_table_from_text)));
+    //my_map.insert(make_pair("breaks",new VarCommand(symbol_table_from_text)));
 
     //need more to condition , print , and sleep
 
     return my_map;
+}
+
+void buildMapSimulator() {
+    symbol_table_from_simulator["/instrumentation/airspeed-indicator/indicated-speed-kt"] = 0;
+    symbol_table_from_simulator["/instrumentation/heading-indicator/offset-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/altimeter/indicated-altitude-ft"] = 0;
+    symbol_table_from_simulator["/instrumentation/altimeter/pressure-alt-ft"] =  0;
+    symbol_table_from_simulator["/instrumentation/attitude-indicator/indicated-pitch-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/attitude-indicator/indicated-roll-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/attitude-indicator/internal-pitch-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/attitude-indicator/internal-roll-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/encoder/indicated-altitude-ft"] =  0;
+    symbol_table_from_simulator["/instrumentation/encoder/pressure-alt-ft"] =  0;
+    symbol_table_from_simulator["/instrumentation/gps/indicated-altitude-ft"] =  0;
+    symbol_table_from_simulator["/instrumentation/gps/indicated-ground-speed-kt\""] =  0;
+    symbol_table_from_simulator["/instrumentation/gps/indicated-vertical-speed"] =  0;
+    symbol_table_from_simulator["/instrumentation/heading-indicator/indicated-heading-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/magnetic-compass/indicated-heading-deg"] =  0;
+    symbol_table_from_simulator["/instrumentation/slip-skid-ball/indicated-slip-skid"] =  0;
+    symbol_table_from_simulator["/instrumentation/turn-indicator/indicated-turn-rate"] =  0;
+    symbol_table_from_simulator["/instrumentation/vertical-speed-indicator/indicated-speed-fpm"] =  0;
+    symbol_table_from_simulator["/controls/flight/aileron"] =  0;
+    symbol_table_from_simulator["/controls/flight/elevator"] =  0;
+    symbol_table_from_simulator["/controls/flight/rudder"] =  0;
+    symbol_table_from_simulator["/controls/flight/flaps"] =  0;
+    symbol_table_from_simulator["/controls/engines/engine/throttle"] =  0;
+    symbol_table_from_simulator["/engines/engine/rpm"] = 0;
 }
