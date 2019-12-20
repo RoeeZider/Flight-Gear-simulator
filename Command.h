@@ -38,7 +38,7 @@ public:
 
     virtual ~Command() {}
 };
-
+//ui
 class OpenServerCommand : public Command {
 public:
     map<string, double> symbol_table_from_simulator;

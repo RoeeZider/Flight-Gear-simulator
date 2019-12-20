@@ -125,6 +125,7 @@ int DefineVarCommand::execute(vector<string> vec) {
     if (vec[2].compare("<-") != 1) {
         dir = 0;
     }
+    //fthj
     string path = vec[4];
     Var *t = new Var(dir, 0, path);
     this->symbol_table_from_text[name] = t;

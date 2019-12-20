@@ -42,7 +42,7 @@ int main() {
     parser(commands,mapCommands);
 
     return 0;
-}
+}//khgv
 
 void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
     vector<string> temp;
