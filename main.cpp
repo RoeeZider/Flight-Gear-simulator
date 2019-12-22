@@ -20,7 +20,7 @@ void buildMapSimulator();
 int main() {
     vector<string> commands;
     map<string,Command*> mapCommands = buildMapCommands();
-
+    symbol_table_from_text["end_client"]=new Var(1,1,"1");
     buildMapSimulator();
 
     //change for main argv[1]
@@ -70,6 +70,8 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
         //no memory allocating
         temp.resize(0);
     }
+    //closes the client by updating this field
+    symbol_table_from_text["end_client"]=new Var(5,5,"5");
 }
 
 void lexer(vector<string> &arr, string line) {
@@ -134,7 +136,7 @@ void lexer(vector<string> &arr, string line) {
     }
     else {
         for(int i =0;i<line.length();i++) {
-            while (line[i]!= '='&& line[i] != '(' && line[i] != ')'&& line[i] != '\n') {
+            while (line[i]!= '='&& line[i] != '(' && line[i] != ')'&& line[i] != '\n' && line[i]!= ' ') {
                 if (i >= line.length()) {
                     break;
                 }
@@ -156,11 +158,11 @@ void lexer(vector<string> &arr, string line) {
 }
 map<string,Command*> buildMapCommands() {
     map<string,Command*> my_map;
-   my_map.insert(make_pair("openDataServer",new OpenServerCommand(symbol_table_from_simulator)));
-    my_map.insert(make_pair("connectControlClient",new ConnectCommand(symbol_table_from_text)));
+  // my_map.insert(make_pair("openDataServer",new OpenServerCommand(symbol_table_from_simulator)));
+   my_map.insert(make_pair("connectControlClient",new ConnectCommand(symbol_table_from_text)));
    my_map.insert(make_pair("var",new DefineVarCommand(symbol_table_from_text)));
-   my_map.insert(make_pair("print",new PrintCommand()));
-   my_map.insert(make_pair("sleep",new SleepCommand()));
+   my_map.insert(make_pair("Print",new PrintCommand()));
+   my_map.insert(make_pair("Sleep",new SleepCommand()));
 
 
     return my_map;
@@ -192,7 +194,4 @@ void buildMapSimulator() {
     symbol_table_from_simulator["/controls/engines/engine/throttle"] =  0;
     symbol_table_from_simulator["/engines/engine/rpm"] = 0;
 
-
-    //i want to check this
-    symbol_table_from_text["check"]=new Var(3,3,"");
 }

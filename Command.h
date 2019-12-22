@@ -21,8 +21,9 @@ private:
     int in1_out0;
     double value;
     string sim;
+    int sent;
 public:
-    Var(int direction, double val, string simu) : in1_out0(direction), value(val), sim(simu) {};
+    Var(int direction, double val, string simu) : in1_out0(direction), value(val), sim(simu) ,sent(0){};
 
     int getDirection() { return this->in1_out0; };
 
@@ -30,7 +31,17 @@ public:
 
     string getSim() { return this->sim; };
 
-    void setValue(double new_val) { this->value = new_val; };
+    void setValue(double new_val) {
+        this->value = new_val;
+        if(this->getDirection()==0)
+            this->sent=1;
+    };
+    void setSent(){
+        this->sent=0;
+    };
+    int getSent(){
+        return this->sent;
+    };
 };
 
 class Command {
@@ -62,7 +73,7 @@ public:
 
 class DefineVarCommand : public Command {
 public:
-    map<string, Var *> symbol_table_from_text;
+    map<string, Var *>& symbol_table_from_text;
 
     DefineVarCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
 
@@ -71,11 +82,10 @@ public:
 
 class PrintCommand : public Command {
 public:
-    map<string, Var *> symbol_table_from_text;
+    map<string, Var *> &symbol_table_from_text;
 
-    PrintCommand() {
+    PrintCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
 
-    }
 
     int execute(vector<string> vec);
 };
