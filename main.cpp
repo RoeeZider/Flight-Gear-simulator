@@ -78,20 +78,22 @@ void lexer(vector<string> &arr, string line) {
     int j = 0;
     string word;
     string word2;
-    bool flag=false;
+    bool flag = false;
     vector<string> vec2;
     static map<string, double> symbol_table_from_simulator;
     static map<string, Var *> symbol_table_from_text;
     //save the firat word from the line
     for (int i = 0; i < line.length(); i++) {
-        while (line[i] != ' ' && line[i] != '(') {
-            word = word + line[i];
+        while (line[i] != ' ' && line[i] != '(' && i < line.length()) {
+            if (line[i] != '\t') {
+                word = word + line[i];
+            }
             i++;
         }
         break;
     }
 
-    if ((word.compare("Print") == 0)||(word.compare("Sleep")==0)) {
+    if ((word.compare("Print") == 0) || (word.compare("Sleep") == 0)) {
         arr.push_back(word);
         for (int i = 5; i < line.length(); i++) {
             if (line[i] == '(') {
@@ -112,7 +114,7 @@ void lexer(vector<string> &arr, string line) {
 
     else if ((word.compare("while") == 0) || (word.compare("if") == 0)) {
         arr.push_back(word);
-        for (int i = word.length()+1; i < line.length(); i++) {
+        for (int i = word.length() + 1; i < line.length(); i++) {
             while (line[i] != '{') {
                 //check spaces
                 word2 = word2 + line[i];
@@ -129,7 +131,7 @@ void lexer(vector<string> &arr, string line) {
         int i = 4;
         while (i != line.length()) {
             if (line[i] != ' ' && line[i] != '(' && line[i] != ')' && line[i] != '\n' && line[i] != '\t' &&
-                line[i] != '-' && line[i] != '>' && line[i] != '<') {
+                line[i] != '-' && line[i] != '>' && line[i] != '<' && line[i] != '=') {
                 word2 = word2 + line[i];
                 i++;
             } else {
@@ -137,54 +139,82 @@ void lexer(vector<string> &arr, string line) {
                     arr.push_back(word2);
                     word2 = "";
                 }
-                if(line[i] == '-') {
-                    if(line[i+1]== '>') {
+                if (line[i] == '-') {
+                    if (line[i + 1] == '>') {
                         arr.push_back("->");
                     }
                 }
-                if(line[i]=='<') {
-                    if(line[i+1] == '-') {
+                if (line[i] == '<') {
+                    if (line[i + 1] == '-') {
                         arr.push_back("<-");
                     }
+                }
+                if (line[i] == '=') {
+                    arr.push_back("=");
+                    word2 = "";
+                    flag = true;
+                    i++;
+                    break;
                 }
 
                 i++;
             }
         }
-        arr.push_back("EOL");
-    } else {
-        int i = 0;
-        while(i!= line.length()) {
-            if(line[i] != '\n' && line[i] != '\t' && line[i]!= '='&& line[i]!=' ') {
-                word2=word2+line[i];
+        if (flag) {
+            while (i != line.length()) {
+                if (line[i] != '\n' && line[i] != '\t') {
+                    word2 = word2 + line[i];
+                }
                 i++;
             }
-            else {
-                if(!word2.compare("") == 0) {
+            if (word2[0] == ' ') {
+                word2 = word2.substr(1);
+            }
+            arr.push_back(word2);
+        }
+        arr.push_back("EOL");
+    } else {
+
+        int i = 0;
+        while (i != line.length()) {
+            if (line[i] != '\n' && line[i] != '\t' && line[i] != '=' && line[i] != ' ') {
+                word2 = word2 + line[i];
+                i++;
+            } else {
+                if (!word2.compare("") == 0) {
                     arr.push_back(word2);
-                    word2="";
+                    word2 = "";
                 }
-                if(line[i] == '=') {
+                if (line[i] == '=') {
                     arr.push_back("=");
-                    word2="";
-                    flag=true;
+                    word2 = "";
+                    flag = true;
                     i++;
                     break;
                 }
                 i++;
             }
         }
-        if(flag) {
+        if (!word2.compare("") == 0) {
+            arr.push_back(word2);
+        }
+        if (flag) {
             while (i != line.length()) {
-                word2 = word2 + line[i];
+                if (line[i] != '\n' && line[i] != '\t') {
+                    word2 = word2 + line[i];
+                }
+                i++;
+            }
+            if (word2[0] == ' ') {
+                word2 = word2.substr(1);
             }
             arr.push_back(word2);
         }
 
         arr.push_back("EOL");
+
     }
 }
-
 
 
 map<string, Command *> buildMapCommands() {
