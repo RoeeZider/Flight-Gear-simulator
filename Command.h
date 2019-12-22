@@ -8,6 +8,7 @@
 #include "Expression.h"
 #include <queue>
 #include <list>
+#include <thread>
 
 using namespace std;
 
@@ -38,10 +39,11 @@ public:
 
     virtual ~Command() {}
 };
+
 //ui
 class OpenServerCommand : public Command {
 public:
-    map<string, double> symbol_table_from_simulator;
+    map<string, double> &symbol_table_from_simulator;
 
     OpenServerCommand(map<string, double> &symbol_table) : symbol_table_from_simulator(symbol_table) {};
 
@@ -51,14 +53,10 @@ public:
 
 class ConnectCommand : public Command {
 public:
-    map<string, double> symbol_table_from_simulator;
-    map<string, Var *> symbol_table_from_text;
 
-    ConnectCommand(map<string, double> &from_simulator, map<string, Var *> &from_text) {
-        this->symbol_table_from_simulator = from_simulator;
-        this->symbol_table_from_text = from_text;
-    };
+    map<string, Var *> &symbol_table_from_text;
 
+    ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
     int execute(vector<string> vec);
 };
 
@@ -66,16 +64,31 @@ class DefineVarCommand : public Command {
 public:
     map<string, Var *> symbol_table_from_text;
 
-    DefineVarCommand(map<string, Var *> &symbol_table) {
-        this->symbol_table_from_text = symbol_table;
-    };
+    DefineVarCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
 
     int execute(vector<string> vec);
 };
 
-class VarCommand : public Command {
+class PrintCommand : public Command {
 public:
-    // VarCommand(map<string, double> &symbol_table_from_text);
+    map<string, Var *> symbol_table_from_text;
+
+    PrintCommand() {
+
+    }
+
+    int execute(vector<string> vec);
+};
+
+class SleepCommand : public Command {
+public:
+
+    int execute(vector<string> vec);
+};
+
+class conditonCommand : public Command {
+public:
+
     int execute(vector<string> vec);
 };
 

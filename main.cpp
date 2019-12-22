@@ -5,6 +5,7 @@
 #include <map>
 #include <cstring>
 #include "Command.h"
+#include "Interpreter.h"
 
 using namespace std;
 //declarations
@@ -42,19 +43,28 @@ int main() {
     parser(commands,mapCommands);
 
     return 0;
-}//khgv
+}
 
 void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
     vector<string> temp;
     int index = 0;
+    Command* c;
     for (vector<string>::iterator it = commands.begin(); it != commands.end(); ++it) {
         while (*it != "EOL") {
             temp.push_back(*it);
             ++it;
         }
-        Command* c =commandsMap.at(commands[index]);
+        string operation=commands[index];
+        auto  iterator=commandsMap.find(operation);
+        if(iterator!= commandsMap.end()) {
+            c =commandsMap.at(operation);
+        }
+        else {
+            c=commandsMap.at("var");
+        }
        // c== &commandsMap.at(commands[index]);
         if (c != NULL) {
+            //what if we are waiting to the number?
             index += c->execute(temp);
         }
         //no memory allocating
@@ -94,7 +104,7 @@ void lexer(vector<string> &arr, string line) {
 
 //check 'if' case
 
-    else if (word.compare("while") == 0) {
+    else if ((word.compare("while") == 0)|| (word.compare("if")==0)) {
         for (int i = 6; i < line.length(); i++) {
             while (line[i] != '{') {
                 //check spaces
@@ -146,12 +156,12 @@ void lexer(vector<string> &arr, string line) {
 }
 map<string,Command*> buildMapCommands() {
     map<string,Command*> my_map;
-  // my_map.insert(make_pair("openDataServer",new OpenServerCommand(symbol_table_from_simulator)));
-   // my_map.insert(make_pair("connectControlClient",new ConnectCommand(symbol_table_from_simulator,symbol_table_from_text)));
+   my_map.insert(make_pair("openDataServer",new OpenServerCommand(symbol_table_from_simulator)));
+    my_map.insert(make_pair("connectControlClient",new ConnectCommand(symbol_table_from_text)));
    my_map.insert(make_pair("var",new DefineVarCommand(symbol_table_from_text)));
-    //my_map.insert(make_pair("breaks",new VarCommand(symbol_table_from_text)));
+   my_map.insert(make_pair("print",new PrintCommand()));
+   my_map.insert(make_pair("sleep",new SleepCommand()));
 
-    //need more to condition , print , and sleep
 
     return my_map;
 }
@@ -181,4 +191,8 @@ void buildMapSimulator() {
     symbol_table_from_simulator["/controls/flight/flaps"] =  0;
     symbol_table_from_simulator["/controls/engines/engine/throttle"] =  0;
     symbol_table_from_simulator["/engines/engine/rpm"] = 0;
+
+
+    //i want to check this
+    symbol_table_from_text["check"]=new Var(3,3,"");
 }
