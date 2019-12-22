@@ -105,26 +105,26 @@ int ConnectCommand::execute(vector<string> vec) {
         return -2;
     } else {
         std::cout << "Client is now connected to server" << std::endl;
-       // char messege[] = "set controls/flight/rudder 1\r\n";
-        //int is_sent = send(client_socket, messege, strlen(messege), 0);
+        char messege[] = "set controls/flight/rudder 1\r\n";
+        int is_sent = send(client_socket, messege, strlen(messege), 0);
     }
     //if here we made a connection
     //need to change it to the end of the file
-    while (symbol_table_from_text.begin()->second->getDirection() != 5) {
+    while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
         for (auto it = this->symbol_table_from_text.begin();
-             it != this->symbol_table_from_text.end(); it++) {
-            if (it->second->getDirection() == 0 && it->second->getSent()==1) {
+             it != this->symbol_table_from_text.end(); ++it) {
+            if (it->second->getDirection() == 0 && it->second->getSent()==0) {
                 it->second->setSent();
                 char messege[] = "";
-                string mes = "set" + it->second->getSim() + " ";
-                mes += it->second->getValue();
+                string mes = "set " + it->second->getSim().substr(2,it->second->getSim().length()-3)+" ";
+                mes += to_string(it->second->getValue());
                 mes += "\r\n";
-                strcpy((char *) messege, mes.c_str());
-                cout << mes << endl;
+                strcpy(messege, mes.c_str());
+                cout << mes<< endl;
                 int is_sent = send(client_socket, messege, strlen(messege), 0);
             }
         }
-        sleep(1);
+        //sleep(1);
     }
     close(client_socket);
     return 3;
@@ -147,7 +147,7 @@ int DefineVarCommand::execute(vector<string> vec) {
             }
         }
         else {
-            if (vec[2].compare("<-") == 0) {
+            if (vec[2].compare("->") == 0) {
                 dir = 0;
             }
 

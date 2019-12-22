@@ -161,7 +161,7 @@ map<string,Command*> buildMapCommands() {
   // my_map.insert(make_pair("openDataServer",new OpenServerCommand(symbol_table_from_simulator)));
    my_map.insert(make_pair("connectControlClient",new ConnectCommand(symbol_table_from_text)));
    my_map.insert(make_pair("var",new DefineVarCommand(symbol_table_from_text)));
-   my_map.insert(make_pair("Print",new PrintCommand()));
+   my_map.insert(make_pair("Print",new PrintCommand(symbol_table_from_text)));
    my_map.insert(make_pair("Sleep",new SleepCommand()));
 
 

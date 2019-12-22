@@ -34,10 +34,10 @@ public:
     void setValue(double new_val) {
         this->value = new_val;
         if(this->getDirection()==0)
-            this->sent=1;
+            this->sent=0;
     };
     void setSent(){
-        this->sent=0;
+        this->sent=1;
     };
     int getSent(){
         return this->sent;
