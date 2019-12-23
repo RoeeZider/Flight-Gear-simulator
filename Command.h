@@ -53,7 +53,7 @@ public:
 
     void setSent() {
         this->sent = 1;
-    };
+    };//
 
     int getSent() {
         return this->sent;

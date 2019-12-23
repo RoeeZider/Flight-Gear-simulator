@@ -47,7 +47,7 @@ int main() {
 
     return 0;
 }
-
+//
 void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
     vector<string> temp;
     int index = 0;

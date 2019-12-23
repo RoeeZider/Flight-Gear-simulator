@@ -107,7 +107,7 @@ int ConnectCommand::execute(vector<string> vec) {
         std::cout << "Client is now connected to server" << std::endl;
         char messege[] = "set controls/flight/rudder -1\r\n";
         int is_sent = send(client_socket, messege, strlen(messege), 0);
-    }
+    }//
     //if here we made a connection
     //need to change it to the end of the file
     while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
