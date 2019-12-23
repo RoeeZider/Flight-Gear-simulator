@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 #include <cstring>
-#include <sstream>
 #include <algorithm>
 #include "Command.h"
 #include "Interpreter.h"
@@ -242,37 +241,3 @@ void clearSpaces(string &word) {
         word = word.substr(0, word.length() - 1);
     }
 }
-/*
-    string intermediate;
-    string deleteVector = "";
-
-        string tmp;
-        int i = 0;
-        for (int i = 0; i < line.length(); i++) {
-            if (line[i] == '=') {
-                string var = line.substr(0, line.find('=') - 1);
-                string op = line.substr(line.find('='), 1);
-                string s = line.substr(line.find('=') + 1, line.length());
-                string::iterator end_pos = std::remove(var.begin(), var.end(), ' ');
-                var.erase(end_pos, var.end());
-                string::iterator end_pos2 = std::remove(op.begin(), op.end(), ' ');
-                op.erase(end_pos2, op.end());
-                string::iterator end_pos3 = std::remove(s.begin(), s.end(), ' ');
-                s.erase(end_pos3, s.end());
-                arr.push_back(var);
-                arr.push_back(op);
-                arr.push_back(s);
-                intermediate = "";
-            }
-            if(line[i] == '\t'){
-                replace(line.begin(), line.end(), '\t', ' ');
-            }
-        }
-        if(intermediate != ""){
-            arr.push_back(intermediate);
-        }
-        //remove "" from the vector
-        auto itr = find(arr.begin(), arr.end(), deleteVector);
-        if (itr != arr.end()) arr.erase(itr);
-    }
-    */

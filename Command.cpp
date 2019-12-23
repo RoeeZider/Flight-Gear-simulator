@@ -12,10 +12,44 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include "Interpreter.h"
-
-void func1() {
-
-};
+#include <thread>
+ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> symbol_table_from_simulator) {
+    int valread;
+    string s;
+    char buffer[1024] = {0};
+    valread = read(client_socket, buffer, 1024);
+    //when we will end the loop?
+    while (valread > 0) {
+        s = buffer;
+        for (auto it = symbol_table_from_simulator.begin();
+             it != symbol_table_from_simulator.end(); it++) {
+            int pos = s.find(",");
+            float val = stof(s.substr(0, pos));
+            it->second = val;
+            s = s.substr(pos + 1);
+            cout << it->first + " " << it->second << endl;
+            valread = read(client_socket, buffer, 1024);
+        }
+    }
+}
+void ConnectCommand::readFromText(int client_socket, map<string, double> symbol_table_from_text) {
+    while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
+        for (auto it = symbol_table_from_text.begin();
+             it != symbol_table_from_text.end(); ++it) {
+            if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
+                it->second->setSent();
+                char messege[] = "";
+                string mes = "set " + it->second->getSim().substr(2, it->second->getSim().length() - 3) + " ";
+                mes += to_string(it->second->getValue());
+                mes += "\r\n";
+                strcpy(messege, mes.c_str());
+                cout << mes << endl;
+                int is_sent = send(client_socket, messege, strlen(messege), 0);
+            }
+        }
+        //sleep(1);
+    }
+}
 
 int OpenServerCommand::execute(vector<string> vec) {
     //if expression :
@@ -23,16 +57,12 @@ int OpenServerCommand::execute(vector<string> vec) {
 
     int port = stoi(vec[1]);
     stringstream str;
-    string s;
-
-    //  thread t1(func1);
 
 
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     int client_socket;
-    int valread;
-    char buffer[1024] = {0};
+
 
     //bind socket to IP address
     // we first need to create the sockaddr obj.
@@ -56,25 +86,16 @@ int OpenServerCommand::execute(vector<string> vec) {
         std::cerr << "Error accepting client" << std::endl;
         return -4;
     }
-    valread = read(client_socket, buffer, 1024);
-    //when we will end the loop?
-    while (valread > 0) {
-        s = buffer;
-        for (auto it = this->symbol_table_from_simulator.begin();
-             it != this->symbol_table_from_simulator.end(); it++) {
-            int pos = s.find(",");
-            float val = stof(s.substr(0, pos));
-            it->second = val;
-            s = s.substr(pos + 1);
-            cout << it->first + " " << it->second << endl;
-            valread = read(client_socket, buffer, 1024);
-        }
-    }
+     thread t1(readFromSimulator,client_socket,symbol_table_from_simulator);
+    t1.detach();
+    //maybe just if done
     close(client_socket);
     close(server_fd);
     //num of jumping
     return 3;
 }
+
+
 
 int ConnectCommand::execute(vector<string> vec) {
     string temp = vec[1];
@@ -110,25 +131,13 @@ int ConnectCommand::execute(vector<string> vec) {
     }
     //if here we made a connection
     //need to change it to the end of the file
-    while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
-        for (auto it = this->symbol_table_from_text.begin();
-             it != this->symbol_table_from_text.end(); ++it) {
-            if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
-                it->second->setSent();
-                char messege[] = "";
-                string mes = "set " + it->second->getSim().substr(2, it->second->getSim().length() - 3) + " ";
-                mes += to_string(it->second->getValue());
-                mes += "\r\n";
-                strcpy(messege, mes.c_str());
-                cout << mes << endl;
-                int is_sent = send(client_socket, messege, strlen(messege), 0);
-            }
-        }
-        //sleep(1);
-    }
+    thread t2(readFromText,client_socket,symbol_table_from_text);
+    t2.detach();
     close(client_socket);
     return 3;
 }
+
+
 
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {

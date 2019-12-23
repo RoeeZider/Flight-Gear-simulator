@@ -75,7 +75,8 @@ public:
     OpenServerCommand(map<string, double> &symbol_table) : symbol_table_from_simulator(symbol_table) {};
 
     int execute(vector<string> vec);
-
+    static void  readFromSimulator(int client_socket,map<string, double> symbol_table_from_simulator);
+      //void readFromSimulator(int client_socket);
 };
 
 class ConnectCommand : public Command {
@@ -86,6 +87,8 @@ public:
     ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
 
     int execute(vector<string> vec);
+
+    static void  readFromText(int client_socket,map<string, double>  symbol_table_from_text);
 };
 
 class DefineVarCommand : public Command {
