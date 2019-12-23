@@ -113,14 +113,14 @@ int ConnectCommand::execute(vector<string> vec) {
     while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
         for (auto it = this->symbol_table_from_text.begin();
              it != this->symbol_table_from_text.end(); ++it) {
-            if (it->second->getDirection() == 0 && it->second->getSent()==0) {
+            if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
                 it->second->setSent();
                 char messege[] = "";
-                string mes = "set " + it->second->getSim().substr(2,it->second->getSim().length()-3)+" ";
+                string mes = "set " + it->second->getSim().substr(2, it->second->getSim().length() - 3) + " ";
                 mes += to_string(it->second->getValue());
                 mes += "\r\n";
                 strcpy(messege, mes.c_str());
-                cout << mes<< endl;
+                cout << mes << endl;
                 int is_sent = send(client_socket, messege, strlen(messege), 0);
             }
         }
@@ -132,21 +132,19 @@ int ConnectCommand::execute(vector<string> vec) {
 
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {
-    int dir=1;
+    int dir = 1;
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
 
         //there is a case og '=' - initialize a different var to
-        if(vec[2].compare("=")==0) {
-            if(isdigit(atoi(vec[3].c_str()))) {
-                this->symbol_table_from_text[vec[1]]=new Var(2,stod(vec[3]),"");
+        if (vec[2].compare("=") == 0) {
+            if (isdigit(atoi(vec[3].c_str()))) {
+                this->symbol_table_from_text[vec[1]] = new Var(2, stod(vec[3]), "");
+            } else {
+                Var *v = this->symbol_table_from_text.at(vec[3]);
+                this->symbol_table_from_text[vec[1]] = new Var(2, v->getValue(), "");
             }
-            else {
-                Var* v=this->symbol_table_from_text.at(vec[3]);
-                this->symbol_table_from_text[vec[1]]=new Var(2,v->getValue(),"");
-            }
-        }
-        else {
+        } else {
             if (vec[2].compare("->") == 0) {
                 dir = 0;
             }
@@ -156,23 +154,24 @@ int DefineVarCommand::execute(vector<string> vec) {
             Var *t = new Var(dir, 0, path);
             this->symbol_table_from_text[name] = t;
         }
-    }
-    else {
+    } else {
         //maybe vec[1] is expression
-        double d=stod(vec[2]);
+        double d = stod(vec[2]);
         this->symbol_table_from_text[vec[0]]->setValue(d);
         //send to simulator the new value
     }
 
-    return vec.size()+1;
+    return vec.size() + 1;
 }
 
 int PrintCommand::execute(vector<string> vec) {
     string printLine = vec[1];
-    auto it=symbol_table_from_text.find(printLine);
-    if(it!=symbol_table_from_text.end()){
+    auto it = symbol_table_from_text.find(printLine);
+    if (it != symbol_table_from_text.end()) {
         cout << it->second->getValue() << endl;
     }
+    //clear the """
+    printLine = printLine.substr(1, printLine.length() - 1);
     cout << printLine << endl;
     return 3;
 }

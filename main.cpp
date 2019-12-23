@@ -231,6 +231,8 @@ map<string, Command *> buildMapCommands() {
 
 void buildMapSimulator() {
     symbol_table_from_simulator["/instrumentation/airspeed-indicator/indicated-speed-kt"] = 0;
+    symbol_table_from_simulator["sim/time/warp"]=0;
+    symbol_table_from_simulator["controls/switches/magnetos"]=0;
     symbol_table_from_simulator["/instrumentation/heading-indicator/offset-deg"] = 0;
     symbol_table_from_simulator["/instrumentation/altimeter/indicated-altitude-ft"] = 0;
     symbol_table_from_simulator["/instrumentation/altimeter/pressure-alt-ft"] = 0;
@@ -253,6 +255,16 @@ void buildMapSimulator() {
     symbol_table_from_simulator["/controls/flight/rudder"] = 0;
     symbol_table_from_simulator["/controls/flight/flaps"] = 0;
     symbol_table_from_simulator["/controls/engines/engine/throttle"] = 0;
+    symbol_table_from_simulator["controls/engines/current-engine/throttle"]=0;
+    symbol_table_from_simulator["controls/switches/master-avionics"]=0;
+    symbol_table_from_simulator["controls/switches/starter"]=0;
+    symbol_table_from_simulator["engines/active-engine/auto-start"]=0;
+    symbol_table_from_simulator["controls/flight/speedbrake"]=0;
+    symbol_table_from_simulator["sim/model/c172p/brake-parking"]=0;
+    symbol_table_from_simulator["controls/engines/engine/primer"]=0;
+    symbol_table_from_simulator["controls/engines/current-engine/mixture"]=0;
+    symbol_table_from_simulator["controls/switches/master-bat"]=0;
+    symbol_table_from_simulator["controls/switches/master-alt"]=0;
     symbol_table_from_simulator["/engines/engine/rpm"] = 0;
 
 
