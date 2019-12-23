@@ -107,7 +107,7 @@ int ConnectCommand::execute(vector<string> vec) {
         std::cout << "Client is now connected to server" << std::endl;
         char messege[] = "set controls/flight/rudder -1\r\n";
         int is_sent = send(client_socket, messege, strlen(messege), 0);
-    }//
+    }
     //if here we made a connection
     //need to change it to the end of the file
     while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
@@ -132,7 +132,7 @@ int ConnectCommand::execute(vector<string> vec) {
 
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {
- //   Interpreter* interpeter=new Interpreter;
+    Interpreter* interpeter=new Interpreter;
     int dir = 1;
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
@@ -152,7 +152,7 @@ int DefineVarCommand::execute(vector<string> vec) {
             }
 
 
-            string path = vec[4];
+            string path = vec[3];
             Var *t = new Var(dir, 0, path,symbol_table_from_simulator);
             this->symbol_table_from_text[name] = t;
         }
@@ -181,9 +181,4 @@ int PrintCommand::execute(vector<string> vec) {
 int SleepCommand::execute(vector<string> vec) {
     sleep(stod((vec[1])));
     return 3;
-}
-int ConditionCommand::execute(vector<string> vec){
-    if(vec[0].compare("while")==0){
-
-    }
 }

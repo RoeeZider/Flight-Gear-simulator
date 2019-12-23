@@ -11,15 +11,15 @@
 #include <list>
 #include "queue"
 #include "Expression.h"
-
 using namespace std;
-
-/*class Expression {
+/*
+class Expression {
 public:
     virtual double calculate() = 0;
     virtual ~Expression();
 
-};*/
+};
+ */
 class Interpreter {
 
 private:

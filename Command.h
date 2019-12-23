@@ -121,9 +121,9 @@ public:
     map<string, double> &symbol_table_from_simulator;
 
 
-    ConditionCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator):
-            symbol_table_from_text(symbol_table),
-            symbol_table_from_simulator(from_simulator) {};
+ //  ConditionCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator):
+   //         symbol_table_from_text(symbol_table),
+     //       symbol_table_from_simulator(from_simulator) {};
 
     int execute(vector<string> vec);
 };

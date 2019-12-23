@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 #include <cstring>
+#include <sstream>
+#include <algorithm>
 #include "Command.h"
 #include "Interpreter.h"
 
@@ -15,6 +17,8 @@ static map<string, Var *> symbol_table_from_text;
 void lexer(vector<string> &arr, string line);
 
 map<string, Command *> buildMapCommands();
+
+void clearSpaces(string &word);
 
 void parser(vector<string> &commands, map<string, Command *> &commandsMap);
 
@@ -47,6 +51,7 @@ int main() {
 
     return 0;
 }
+
 //
 void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
     vector<string> temp;
@@ -59,8 +64,8 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
         }
         string operation = commands[index];
         //מוסיף פה משהו ללולאות
-        if(operation.compare("while")==0||operation.compare("if")==0){
-            while (*it!="}"){
+        if (operation.compare("while") == 0 || operation.compare("if") == 0) {
+            while (*it != "}") {
                 temp.push_back(*it);
                 ++it;
             }
@@ -82,13 +87,11 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
 }
 
 void lexer(vector<string> &arr, string line) {
-    int j = 0;
+
+    replace(line.begin(), line.end(), '\t', ' ');
     string word;
     string word2;
-    bool flag = false;
-    vector<string> vec2;
-    static map<string, double> symbol_table_from_simulator;
-    static map<string, Var *> symbol_table_from_text;
+
     //save the firat word from the line
     for (int i = 0; i < line.length(); i++) {
         while (line[i] != ' ' && line[i] != '(' && i < line.length()) {
@@ -99,128 +102,83 @@ void lexer(vector<string> &arr, string line) {
         }
         break;
     }
-
+    clearSpaces(word);
     if ((word.compare("Print") == 0) || (word.compare("Sleep") == 0)) {
         arr.push_back(word);
-        for (int i = 5; i < line.length(); i++) {
-            if (line[i] == '(') {
-                while (i < line.length() - 2) {
-                    i++;
-                    word2 = word2 + line[i];
 
-                }
-            }
-        }
+        word2 = line.substr(line.find('(') + 1);
+        word2 = word2.substr(0, word2.length() - 1);
 
         arr.push_back(word2);
         arr.push_back("EOL");
         word2 = "";
-    }
-
-//check 'if' case
-
-    else if ((word.compare("while") == 0) || (word.compare("if") == 0)) {
+    } else if ((word.compare("while") == 0) || (word.compare("if") == 0)) {
         arr.push_back(word);
-        for (int i = word.length() + 1; i < line.length(); i++) {
-            while (line[i] != '{') {
-                //check spaces
-                word2 = word2 + line[i];
-                i++;
-            }
-        }
+
+        word2 = line.substr(word.length() + 1);
         word2 = word2.substr(0, word2.length() - 1);
         arr.push_back(word2);
         arr.push_back("{");
         arr.push_back("EOL");
         word2 = "";
-    } else if (word.compare("var") == 0) {
-        arr.push_back("var");
-        int i = 4;
-        while (i != line.length()) {
-            if (line[i] != ' ' && line[i] != '(' && line[i] != ')' && line[i] != '\n' && line[i] != '\t' &&
-                line[i] != '-' && line[i] != '>' && line[i] != '<' && line[i] != '=') {
-                word2 = word2 + line[i];
-                i++;
-            } else {
-                if (!word2.compare("") == 0) {
-                    arr.push_back(word2);
-                    word2 = "";
-                }
-                if (line[i] == '-') {
-                    if (line[i + 1] == '>') {
-                        arr.push_back("->");
-                    }
-                }
-                if (line[i] == '<') {
-                    if (line[i + 1] == '-') {
-                        arr.push_back("<-");
-                    }
-                }
-                if (line[i] == '=') {
-                    arr.push_back("=");
-                    word2 = "";
-                    flag = true;
-                    i++;
-                    break;
-                }
 
-                i++;
+    } else if (word.compare("var") == 0) {
+        arr.push_back(word);
+        word2 = line.substr(4);
+        int token = line.find('=');
+        string temp;
+        if (line.find('=') == -1) {
+            int x = word2.find('>');
+            int y = word2.find('<');
+            if (x > y) {
+                temp = word2.substr(0, x - 2);
+                arr.push_back(temp);
+                arr.push_back("->");
+                word2 = word2.substr(x + 1);
+            } else {
+                temp = word2.substr(0, y - 1);
+                arr.push_back(temp);
+                arr.push_back("<-");
+                word2 = word2.substr(y + 1);
             }
-        }
-        if (flag) {
-            while (i != line.length()) {
-                if (line[i] != '\n' && line[i] != '\t') {
-                    word2 = word2 + line[i];
-                }
-                i++;
-            }
-            if (word2[0] == ' ') {
-                word2 = word2.substr(1);
-            }
+            word2 = word2.substr(word2.find('(') + 1);
+            word2 = word2.substr(0, word2.length() - 1);
             arr.push_back(word2);
+        } else {
+            string temp;
+            temp = word2.substr(0, line.find('='));
+            arr.push_back(temp);
+            word2 = word2.substr(line.find('=') + 1);
+            arr.push_back(word2);
+
         }
         arr.push_back("EOL");
     } else {
-
-        int i = 0;
-        while (i != line.length()) {
-            if (line[i] != '\n' && line[i] != '\t' && line[i] != '=' && line[i] != ' ') {
-                word2 = word2 + line[i];
-                i++;
+        if (line.find('=') == -1) {
+            if (word.compare("}") != 0) {
+                arr.push_back(word);
+                word2 = line.substr(line.find('(') + 1);
+                word2 = word2.substr(0, word2.length() - 1);
+                clearSpaces(word2);
+                arr.push_back(word2);
             } else {
-                if (!word2.compare("") == 0) {
-                    arr.push_back(word2);
-                    word2 = "";
-                }
-                if (line[i] == '=') {
-                    arr.push_back("=");
-                    word2 = "";
-                    flag = true;
-                    i++;
-                    break;
-                }
-                i++;
+                arr.push_back("}");
             }
-        }
-        if (!word2.compare("") == 0) {
+        } else {
+            string temp;
+            temp = line.substr(0, line.find('='));
+            clearSpaces(temp);
+            arr.push_back(temp);
+            arr.push_back("=");
+            word2 = line.substr(line.find('=') + 1);
+            clearSpaces(word2);
             arr.push_back(word2);
         }
-        if (flag) {
-            while (i != line.length()) {
-                if (line[i] != '\n' && line[i] != '\t') {
-                    word2 = word2 + line[i];
-                }
-                i++;
-            }
-            if (word2[0] == ' ') {
-                word2 = word2.substr(1);
-            }
-            arr.push_back(word2);
-        }
-
         arr.push_back("EOL");
 
     }
+
+
 }
 
 
@@ -228,18 +186,18 @@ map<string, Command *> buildMapCommands() {
     map<string, Command *> my_map;
     my_map.insert(make_pair("openDataServer", new OpenServerCommand(symbol_table_from_simulator)));
     my_map.insert(make_pair("connectControlClient", new ConnectCommand(symbol_table_from_text)));
-    my_map.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text,symbol_table_from_simulator)));
+    my_map.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text, symbol_table_from_simulator)));
     my_map.insert(make_pair("Print", new PrintCommand(symbol_table_from_text)));
     my_map.insert(make_pair("Sleep", new SleepCommand()));
-    my_map.insert(make_pair("while", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
-    my_map.insert(make_pair("if", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
+    //   my_map.insert(make_pair("while", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
+    // my_map.insert(make_pair("if", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
     return my_map;
 }
 
 void buildMapSimulator() {
     symbol_table_from_simulator["/instrumentation/airspeed-indicator/indicated-speed-kt"] = 0;
-    symbol_table_from_simulator["sim/time/warp"]=0;
-    symbol_table_from_simulator["controls/switches/magnetos"]=0;
+    symbol_table_from_simulator["sim/time/warp"] = 0;
+    symbol_table_from_simulator["controls/switches/magnetos"] = 0;
     symbol_table_from_simulator["/instrumentation/heading-indicator/offset-deg"] = 0;
     symbol_table_from_simulator["/instrumentation/altimeter/indicated-altitude-ft"] = 0;
     symbol_table_from_simulator["/instrumentation/altimeter/pressure-alt-ft"] = 0;
@@ -262,16 +220,59 @@ void buildMapSimulator() {
     symbol_table_from_simulator["/controls/flight/rudder"] = 0;
     symbol_table_from_simulator["/controls/flight/flaps"] = 0;
     symbol_table_from_simulator["/controls/engines/engine/throttle"] = 0;
-    symbol_table_from_simulator["controls/engines/current-engine/throttle"]=0;
-    symbol_table_from_simulator["controls/switches/master-avionics"]=0;
-    symbol_table_from_simulator["controls/switches/starter"]=0;
-    symbol_table_from_simulator["engines/active-engine/auto-start"]=0;
-    symbol_table_from_simulator["controls/flight/speedbrake"]=0;
-    symbol_table_from_simulator["sim/model/c172p/brake-parking"]=0;
-    symbol_table_from_simulator["controls/engines/engine/primer"]=0;
-    symbol_table_from_simulator["controls/engines/current-engine/mixture"]=0;
-    symbol_table_from_simulator["controls/switches/master-bat"]=0;
-    symbol_table_from_simulator["controls/switches/master-alt"]=0;
+    symbol_table_from_simulator["controls/engines/current-engine/throttle"] = 0;
+    symbol_table_from_simulator["controls/switches/master-avionics"] = 0;
+    symbol_table_from_simulator["controls/switches/starter"] = 0;
+    symbol_table_from_simulator["engines/active-engine/auto-start"] = 0;
+    symbol_table_from_simulator["controls/flight/speedbrake"] = 0;
+    symbol_table_from_simulator["sim/model/c172p/brake-parking"] = 0;
+    symbol_table_from_simulator["controls/engines/engine/primer"] = 0;
+    symbol_table_from_simulator["controls/engines/current-engine/mixture"] = 0;
+    symbol_table_from_simulator["controls/switches/master-bat"] = 0;
+    symbol_table_from_simulator["controls/switches/master-alt"] = 0;
     symbol_table_from_simulator["/engines/engine/rpm"] = 0;
 
 }
+
+void clearSpaces(string &word) {
+    if (word[0] == ' ') {
+        word = word.substr(1);
+    }
+    if (word[word.length() - 1] == ' ') {
+        word = word.substr(0, word.length() - 1);
+    }
+}
+/*
+    string intermediate;
+    string deleteVector = "";
+
+        string tmp;
+        int i = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (line[i] == '=') {
+                string var = line.substr(0, line.find('=') - 1);
+                string op = line.substr(line.find('='), 1);
+                string s = line.substr(line.find('=') + 1, line.length());
+                string::iterator end_pos = std::remove(var.begin(), var.end(), ' ');
+                var.erase(end_pos, var.end());
+                string::iterator end_pos2 = std::remove(op.begin(), op.end(), ' ');
+                op.erase(end_pos2, op.end());
+                string::iterator end_pos3 = std::remove(s.begin(), s.end(), ' ');
+                s.erase(end_pos3, s.end());
+                arr.push_back(var);
+                arr.push_back(op);
+                arr.push_back(s);
+                intermediate = "";
+            }
+            if(line[i] == '\t'){
+                replace(line.begin(), line.end(), '\t', ' ');
+            }
+        }
+        if(intermediate != ""){
+            arr.push_back(intermediate);
+        }
+        //remove "" from the vector
+        auto itr = find(arr.begin(), arr.end(), deleteVector);
+        if (itr != arr.end()) arr.erase(itr);
+    }
+    */
