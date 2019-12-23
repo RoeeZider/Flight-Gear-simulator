@@ -132,14 +132,14 @@ int ConnectCommand::execute(vector<string> vec) {
 
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {
-    Interpreter* interpeter=new Interpreter;
+ //   Interpreter* interpeter=new Interpreter;
     int dir = 1;
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
 
         //there is a case og '=' - initialize a different var to
         if (vec[2].compare("=") == 0) {
-            Expression* exp=interpreter.interpret(vec[3]);
+//            Expression* exp=interpreter.interpret(vec[3]);
             if (isdigit(atoi(vec[3].c_str()))) {
                 this->symbol_table_from_text[vec[1]] = new Var(2, stod(vec[3]), "",symbol_table_from_simulator);
             } else {
@@ -181,4 +181,9 @@ int PrintCommand::execute(vector<string> vec) {
 int SleepCommand::execute(vector<string> vec) {
     sleep(stod((vec[1])));
     return 3;
+}
+int ConditionCommand::execute(vector<string> vec){
+    if(vec[0].compare("while")==0){
+
+    }
 }

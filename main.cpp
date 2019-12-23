@@ -58,6 +58,13 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
             ++it;
         }
         string operation = commands[index];
+        //מוסיף פה משהו ללולאות
+        if(operation.compare("while")==0||operation.compare("if")==0){
+            while (*it!="}"){
+                temp.push_back(*it);
+                ++it;
+            }
+        }
         auto iterator = commandsMap.find(operation);
         if (iterator != commandsMap.end()) {
             c = commandsMap.at(operation);
@@ -224,7 +231,8 @@ map<string, Command *> buildMapCommands() {
     my_map.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text,symbol_table_from_simulator)));
     my_map.insert(make_pair("Print", new PrintCommand(symbol_table_from_text)));
     my_map.insert(make_pair("Sleep", new SleepCommand()));
-
+    my_map.insert(make_pair("while", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
+    my_map.insert(make_pair("if", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
     return my_map;
 }
 
