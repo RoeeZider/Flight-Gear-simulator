@@ -105,7 +105,7 @@ int ConnectCommand::execute(vector<string> vec) {
         return -2;
     } else {
         std::cout << "Client is now connected to server" << std::endl;
-        char messege[] = "set controls/flight/rudder 1\r\n";
+        char messege[] = "set controls/flight/rudder -1\r\n";
         int is_sent = send(client_socket, messege, strlen(messege), 0);
     }
     //if here we made a connection
@@ -132,17 +132,19 @@ int ConnectCommand::execute(vector<string> vec) {
 
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {
+    Interpreter* interpeter=new Interpreter;
     int dir = 1;
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
 
         //there is a case og '=' - initialize a different var to
         if (vec[2].compare("=") == 0) {
+            Expression* exp=interpreter.interpret(vec[3]);
             if (isdigit(atoi(vec[3].c_str()))) {
-                this->symbol_table_from_text[vec[1]] = new Var(2, stod(vec[3]), "");
+                this->symbol_table_from_text[vec[1]] = new Var(2, stod(vec[3]), "",symbol_table_from_simulator);
             } else {
                 Var *v = this->symbol_table_from_text.at(vec[3]);
-                this->symbol_table_from_text[vec[1]] = new Var(2, v->getValue(), "");
+                this->symbol_table_from_text[vec[1]] = new Var(2, v->getValue(), "",symbol_table_from_simulator);
             }
         } else {
             if (vec[2].compare("->") == 0) {
@@ -151,7 +153,7 @@ int DefineVarCommand::execute(vector<string> vec) {
 
 
             string path = vec[4];
-            Var *t = new Var(dir, 0, path);
+            Var *t = new Var(dir, 0, path,symbol_table_from_simulator);
             this->symbol_table_from_text[name] = t;
         }
     } else {

@@ -23,23 +23,38 @@ private:
     string sim;
     int sent;
 public:
-    Var(int direction, double val, string simu) : in1_out0(direction), value(val), sim(simu) ,sent(0){};
+    map<string, double> &symbol_table_from_simulator;
+
+    Var(int direction, double val, string simu, map<string, double> &symbol_table):symbol_table_from_simulator(symbol_table) {
+        in1_out0 = direction;
+        value = val;
+        sim = simu;
+        sent = 0;
+    };
 
     int getDirection() { return this->in1_out0; };
 
-    double getValue() { return this->value; };
+    double getValue() {
+        if (this->in1_out0 == 1) {
+            auto it = symbol_table_from_simulator.find(sim);
+            this->value = it->second;
+        }
+        return this->value;
+    };
 
     string getSim() { return this->sim; };
 
     void setValue(double new_val) {
         this->value = new_val;
-        if(this->getDirection()==0)
-            this->sent=0;
+        if (this->getDirection() == 0)
+            this->sent = 0;
     };
-    void setSent(){
-        this->sent=1;
+
+    void setSent() {
+        this->sent = 1;
     };
-    int getSent(){
+
+    int getSent() {
         return this->sent;
     };
 };
@@ -67,15 +82,19 @@ public:
 
     map<string, Var *> &symbol_table_from_text;
 
-    ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
+    ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
+
     int execute(vector<string> vec);
 };
 
 class DefineVarCommand : public Command {
 public:
-    map<string, Var *>& symbol_table_from_text;
+    map<string, Var *> &symbol_table_from_text;
+    map<string, double> &symbol_table_from_simulator;
 
-    DefineVarCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
+    DefineVarCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator):
+        symbol_table_from_text (symbol_table),
+        symbol_table_from_simulator(from_simulator){};
 
     int execute(vector<string> vec);
 };
@@ -84,8 +103,7 @@ class PrintCommand : public Command {
 public:
     map<string, Var *> &symbol_table_from_text;
 
-    PrintCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table){};
-
+    PrintCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
 
     int execute(vector<string> vec);
 };

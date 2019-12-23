@@ -2,7 +2,7 @@
 // Created by roee on 17/12/2019.
 //
 
-#include "Expression.h"
+
 
 #ifndef UPDATEDSIM_INTERPRETER_H
 #define UPDATEDSIM_INTERPRETER_H
@@ -10,11 +10,16 @@
 #include <string>
 #include <list>
 #include "queue"
+using namespace std;
 
+class Expression {
+public:
+    virtual double calculate() = 0;
+    virtual ~Expression();
+
+};
 class Interpreter {
 
-
-public:
 private:
     map<string, double> mapVariables;
 
