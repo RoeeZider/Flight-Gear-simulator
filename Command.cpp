@@ -226,7 +226,8 @@ int ConditionCommand::execute(vector<string> vec) {
     //צריך לעשות כאן interpeter
     if (vec[0].compare("while") == 0) {
         while((value-val)*flag2+(flag1*flag2)>0) {
-            parser(vec., mapCommand);
+            vec.erase(vec.begin(),vec.begin()+4);
+            parser(vec, mapCommand);
             value = symbol_table_from_text.find(condition_var)->second->getValue();
             if(flag3==1){//if var is expression that might change during the running.
                 //var=
