@@ -196,7 +196,7 @@ int ConditionCommand::execute(vector<string> vec) {
     int i = 0;
     double val = 0;
     char sign;
-    int flag1 = 0, flag2 = 1,flag3=0;
+    int flag1 = 0, flag2 = 1, flag3 = 0, flag4 = 1;
     string temp = "";
     while (vec[1][i] > 64) {
         temp += vec[1][i];
@@ -209,6 +209,8 @@ int ConditionCommand::execute(vector<string> vec) {
     //אם הסימן הוא >  פלאג2 הוא -1
     if (sign == '<')
         flag2 = -1;
+    if (sign == '=')
+        flag4 = 0;
     if (vec[1][i + 1] == '=') {
         flag1 = 1;
         i++;
@@ -218,25 +220,32 @@ int ConditionCommand::execute(vector<string> vec) {
         temp += vec[1][i];
         i++;
     }
-   // if (isdigit(stoi(temp))) {
-        val = stod(temp);
-        flag3=1;
+    // if (isdigit(stoi(temp))) {
+    val = stod(temp);
+    flag3 = 1;
     //}
     //else{}
     //צריך לעשות כאן interpeter
     if (vec[0].compare("while") == 0) {
-        while((value-val)*flag2+(flag1*flag2)>0) {
-            vec.erase(vec.begin(),vec.begin()+4);
+        while (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
+               (flag4 == 0 && value == val)) {
+            //כאשר הסימן הוא == דגל4 הוא 0 ולכן התנאי הראשון אינו נכון וייבדק רק השני.
+            // כאשר הסימן הוא > דגל2 הוא 1- ולכן כשנכפיל בהפרש,נקבל אמת רק אם השני גדול מהראשון.
+            //כאשר קיבלנו => או =< נוסיף את דגל1
+            vec.erase(vec.begin(), vec.begin() + 4);
             parser(vec, mapCommand);
             value = symbol_table_from_text.find(condition_var)->second->getValue();
-            if(flag3==1){//if var is expression that might change during the running.
+            if (flag3 == 1) {//if var is expression that might change during the running.
                 //var=
-                flag3=0;
+                flag3 = 0;
             }
         }
-
+    } else if (vec[0].compare("if") == 0) {
+        if ((value - val) * flag2 + (flag1 * flag2) > 0) {
+            vec.erase(vec.begin(), vec.begin() + 4);
+            parser(vec, mapCommand);
+        }
     }
-
 
 
 }
