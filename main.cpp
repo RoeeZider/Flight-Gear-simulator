@@ -15,7 +15,7 @@ static map<string, Var *> symbol_table_from_text;
 
 void lexer(vector<string> &arr, string line);
 
-map<string, Command *> buildMapCommands();
+void buildMapCommands();
 
 void clearSpaces(string &word);
 
@@ -23,11 +23,11 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap);
 
 void buildMapSimulator();
 
+static vector<string> commands;
+static map<string, Command *> mapCommands;
 
 int main() {
-    vector<string> commands;
-    map<string, Command *> mapCommands = buildMapCommands();
-
+    buildMapCommands();
     buildMapSimulator();
 
     //change for main argv[1]
@@ -181,16 +181,20 @@ void lexer(vector<string> &arr, string line) {
 }
 
 
-map<string, Command *> buildMapCommands() {
-    map<string, Command *> my_map;
-    my_map.insert(make_pair("openDataServer", new OpenServerCommand(symbol_table_from_simulator)));
-    my_map.insert(make_pair("connectControlClient", new ConnectCommand(symbol_table_from_text)));
-    my_map.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text, symbol_table_from_simulator)));
-    my_map.insert(make_pair("Print", new PrintCommand(symbol_table_from_text)));
-    my_map.insert(make_pair("Sleep", new SleepCommand()));
-    //   my_map.insert(make_pair("while", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
-    // my_map.insert(make_pair("if", new ConditionCommand(symbol_table_from_text,symbol_table_from_simulator)));
-    return my_map;
+void buildMapCommands() {
+    // map<string, Command *> my_map;
+    mapCommands.insert(make_pair("openDataServer", new OpenServerCommand(symbol_table_from_simulator)));
+    mapCommands.insert(make_pair("connectControlClient", new ConnectCommand(symbol_table_from_text)));
+    mapCommands.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text, symbol_table_from_simulator)));
+    mapCommands.insert(make_pair("Print", new PrintCommand(symbol_table_from_text)));
+    mapCommands.insert(make_pair("Sleep", new SleepCommand()));
+    mapCommands.insert(make_pair("while", new ConditionCommand(symbol_table_from_text, symbol_table_from_simulator,mapCommands,
+                                                               reinterpret_cast<void (*)(vector<std::string>,
+                                                                                         map<std::string, struct Command *>)>(&parser))));
+    mapCommands.insert(make_pair("if", new ConditionCommand(symbol_table_from_text, symbol_table_from_simulator,mapCommands,
+                                                            reinterpret_cast<void (*)(vector<std::string>,
+                                                                                      map<std::string, struct Command *>)>(&parser))));
+    // return my_map;
 }
 
 void buildMapSimulator() {

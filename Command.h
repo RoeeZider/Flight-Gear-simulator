@@ -88,7 +88,7 @@ public:
 
     int execute(vector<string> vec);
 
-    static void  readFromText(int client_socket,map<string, double>  symbol_table_from_text);
+    static void  readFromText(int client_socket,map<string, Var*>  symbol_table_from_text);
 };
 
 class DefineVarCommand : public Command {
@@ -114,19 +114,23 @@ public:
 
 class SleepCommand : public Command {
 public:
-
     int execute(vector<string> vec);
 };
 
 class ConditionCommand : public Command {
 public:
+
     map<string, Var *> &symbol_table_from_text;
     map<string, double> &symbol_table_from_simulator;
+    map<string,Command*> &mapCommand;
+    void (*parser)(vector<string>, map<string, Command *>);
 
-
- //  ConditionCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator):
-   //         symbol_table_from_text(symbol_table),
-     //       symbol_table_from_simulator(from_simulator) {};
+   ConditionCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator,map<string,Command*> &mapCommands
+           ,void (* func)(vector<string>, map<string, Command *>)):
+           symbol_table_from_text(symbol_table),
+           symbol_table_from_simulator(from_simulator),mapCommand(mapCommands) {
+           parser=func;
+   };
 
     int execute(vector<string> vec);
 };
