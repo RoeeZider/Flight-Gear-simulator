@@ -29,9 +29,7 @@ static map<string, Command *> mapCommands;
 int main() {
     buildMapCommands();
     buildMapSimulator();
-
-
-
+   symbol_table_from_text["end_client"]=new Var(5,0,"5",symbol_table_from_simulator);
     //change for main argv[1]
     std::ifstream file("fly.txt");
     if (file.is_open()) {
@@ -88,6 +86,7 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
             temp.resize(0);
         }
     }
+    symbol_table_from_text["end_client"]->setValue(5);
 }
 
 void lexer(vector<string> &arr, string line) {

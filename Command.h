@@ -54,7 +54,7 @@ public:
 
     void setSent() {
         this->sent = 1;
-    };//
+    };
 
     int getSent() {
         return this->sent;
@@ -70,16 +70,16 @@ public:
     virtual ~Command() {}
 };
 
-//ui
+
 class OpenServerCommand : public Command {
 public:
     map<string, double> &symbol_table_from_simulator;
-map<string, Var *> &symbol_table_from_text;
+    map<string, Var *> &symbol_table_from_text;
     OpenServerCommand(map<string, double> &symbol_table,map<string, Var *> &from_text) : symbol_table_from_simulator(symbol_table),
     symbol_table_from_text(from_text){};
 
     int execute(vector<string> vec);
-    static void  readFromSimulator(int client_socket,map<string, double> symbol_table_from_simulator);
+   static void  readFromSimulator(int client_socket,map<string, double> &symbol_table_from_simulator);
       //void readFromSimulator(int client_socket);
 };
 
@@ -90,14 +90,14 @@ public:
 
     ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
 
-    int execute(vector<string> vec);
+    int execute(vector<string> vec) override;
 
-    static void  readFromText(int client_socket,map<string, Var*>  symbol_table_from_text);
+    static void  readFromText(int client_socket,map<string, Var*> & symbol_table_from_text);
 };
 
 class DefineVarCommand : public Command {
 public:
-    map<string, Var *> &symbol_table_from_text;
+    map<string, Var *>& symbol_table_from_text;
     map<string, double> &symbol_table_from_simulator;
 
     DefineVarCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator) :
@@ -141,5 +141,10 @@ public:
 
     int execute(vector<string> vec);
 };
+
+
+
+
+
 
 #endif //FLIGHTGEAR_COMMNAD_H

@@ -1,4 +1,3 @@
-Roee Zider, [25.12.19 17:36]
 //
 // Created by roee on 17/12/2019.
 //
@@ -14,18 +13,22 @@ Roee Zider, [25.12.19 17:36]
 #include <arpa/inet.h>
 #include "Interpreter.h"
 #include <thread>
+#include <mutex>
 
-void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> symbol_table_from_simulator) {
-
+void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
+    cout << symbol_table_from_simulator.size() << endl;
     int valread;
     string s;
+    mutex m;
     char buffer[1024] = {0};
     valread = read(client_socket, buffer, 1024);
     //when we will end the loop?
     while (valread > 0) {
         s = buffer;
+        m.lock();
+        cout<<"הגיע לפה"<<endl;
         for (auto it = symbol_table_from_simulator.begin();
-             it != symbol_table_from_simulator.end(); it++) {
+             it != symbol_table_from_simulator.end(); ++it) {
             int pos = s.find(",");
             float val = stof(s.substr(0, pos));
             it->second = val;
@@ -33,11 +36,16 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
             cout << it->first + " " << it->second << endl;
             valread = read(client_socket, buffer, 1024);
         }
+        m.unlock();
     }
 }
 
-void ConnectCommand::readFromText(int client_socket, map<string, Var *> symbol_table_from_text) {
-    while (symbol_table_from_text.find("end_client")->second->getDirection() != 5) {
+void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_table_from_text) {
+    cout << "inside client thread " << symbol_table_from_text.size();
+    mutex m;
+    cout << symbol_table_from_text.find("end_client")->second->getValue() << endl;
+    while (symbol_table_from_text.find("end_client")->second->getValue() != 5) {
+        m.lock();
         for (auto it = symbol_table_from_text.begin();
              it != symbol_table_from_text.end(); ++it) {
             if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
@@ -51,7 +59,8 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> symbol_t
                 int is_sent = send(client_socket, messege, strlen(messege), 0);
             }
         }
-        //sleep(1);
+        m.unlock();
+        sleep(2);
     }
 }
 
@@ -63,7 +72,7 @@ int OpenServerCommand::execute(vector<string> vec) {
     double p = e->calculate();
     int port = (int) p;
     stringstream str;
-
+    char buffer[1024] = {0};
 
     struct sockaddr_in address;
     int addrlen = sizeof(address);
@@ -92,7 +101,10 @@ int OpenServerCommand::execute(vector<string> vec) {
         std::cerr << "Error accepting client" << std::endl;
         return -4;
     }
-    thread t1(readFromSimulator, client_socket, symbol_table_from_simulator);
+    std::cout << "Server is coonected" << endl;
+    int valread = read(client_socket, buffer, 1024);
+    cout << buffer << endl;
+    thread t1(readFromSimulator, client_socket, ref(symbol_table_from_simulator));
     t1.detach();
     //maybe just if done
     close(client_socket);
@@ -118,8 +130,6 @@ int ConnectCommand::execute(vector<string> vec) {
         std::cerr << "Could not create a socket" << std::endl;
         return -1;
     }
-
-    Roee Zider, [25.12.19 17:36]
 //We need to create a sockaddr obj to hold address of server
     sockaddr_in address; //in means IP4
     address.sin_family = AF_INET;//IP4
@@ -140,7 +150,7 @@ int ConnectCommand::execute(vector<string> vec) {
     }
     //if here we made a connection
     //need to change it to the end of the file
-    thread t2(readFromText, client_socket, symbol_table_from_text);
+    thread t2(readFromText, client_socket, ref(symbol_table_from_text));
     t2.detach();
     close(client_socket);
     return 3;
@@ -180,13 +190,16 @@ int DefineVarCommand::execute(vector<string> vec) {
 
 int PrintCommand::execute(vector<string> vec) {
     string printLine = vec[1];
-    auto it = symbol_table_from_text.find(printLine);
-    if (it != symbol_table_from_text.end()) {
-        cout << it->second->getValue() << endl;
+    if (vec[1][0] != 34) {//34 is the char " in ascii
+        Interpreter *i = new Interpreter(symbol_table_from_text);
+        Expression *e = i->interpret(vec[1]);
+        cout << e->calculate() << endl;
     }
-    //clear the """
-    printLine = printLine.substr(1, printLine.length() - 1);
-    cout << printLine << endl;
+        //clear the """
+    else {
+        printLine = printLine.substr(1, printLine.length() - 1);
+        cout << printLine << endl;
+    }
     return 3;
 }
 
@@ -212,6 +225,7 @@ int ConditionCommand::execute(vector<string> vec) {
     }
     string condition_var = temp;
     double value = symbol_table_from_text.find(condition_var)->second->getValue();
+    cout<<val<<" זהו הערך של rpm"<<endl;
     sign = vec[1][i];
     i++;
     //אם הסימן הוא >  פלאג2 הוא -1
@@ -229,22 +243,11 @@ int ConditionCommand::execute(vector<string> vec) {
             temp += vec[1][i];
         i++;
     }
-    <<<<<<< HEAD
     Expression *e = interpreter->interpret(temp);
     val = e->calculate();
-    for(auto it=vec.begin()+4;it!=vec.end();++it){
+    for (auto it = vec.begin() + 4; it != vec.end(); ++it) {
         vec1.push_back(*it);
     }
-
-    Roee Zider, [25.12.19 17:36]
-    =======
-    if (isdigit(atoi(temp.c_str()))) {
-        val = stod(temp);
-        flag3 = 1;
-    }
-    //else{}
-    //צריך לעשות כאן interpeter
-    >>>>>>> origin/master
     if (vec[0].compare("while") == 0) {
         while (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
                (flag4 == 0 && value == val)) {
@@ -254,23 +257,15 @@ int ConditionCommand::execute(vector<string> vec) {
             parser(vec1, mapCommand);
             value = symbol_table_from_text.find(condition_var)->second->getValue();
             e = interpreter->interpret(temp);
-            val=e->calculate();
+            val = e->calculate();
         }
     } else if (vec[0].compare("if") == 0) {
-        <<<<<<< HEAD
-        if ((value - val) * flag2 + (flag1 * flag2) > 0) {
+        if (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
+            (flag4 == 0 && value == val)) {
             parser(vec1, mapCommand);
         }
     }
 
-    return vec.size()+2;
-    =======
-    if (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
-        (flag4 == 0 && value == val)) {
-        vec.erase(vec.begin(), vec.begin() + 4);
-        parser(vec, mapCommand);
-    }
-}
+    return vec.size() + 2;
 
->>>>>>> origin/master
 }
