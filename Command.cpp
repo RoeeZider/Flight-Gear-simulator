@@ -15,6 +15,7 @@
 #include <thread>
 
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> symbol_table_from_simulator) {
+
     int valread;
     string s;
     char buffer[1024] = {0};
@@ -56,8 +57,10 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> symbol_t
 int OpenServerCommand::execute(vector<string> vec) {
     //if expression :
     //else
-
-    int port = stoi(vec[1]);
+    Interpreter *interpreter = new Interpreter(symbol_table_from_text);
+    Expression *e = interpreter->interpret(vec[1]);
+    double p = e->calculate();
+    int port = (int) p;
     stringstream str;
 
 
@@ -102,9 +105,12 @@ int ConnectCommand::execute(vector<string> vec) {
     string temp = vec[1];
     int pos = temp.find(",");
     string ip = temp.substr(1, pos - 1);
+    Interpreter *interpreter = new Interpreter(symbol_table_from_text);
     const char *ip_c[ip.length()];
+    Expression *e = interpreter->interpret(temp.substr(pos + 1));
+    double p = e->calculate();
     strcpy((char *) ip_c, ip.c_str());
-    int port = stoi(temp.substr(pos + 1));
+    int port = (int) p;
     int client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket == -1) {
         //error
@@ -141,34 +147,29 @@ int ConnectCommand::execute(vector<string> vec) {
 
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {
-    Interpreter *interpeter = new Interpreter;
+    Interpreter *interpreter = new Interpreter(symbol_table_from_text);
+
     int dir = 1;
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
 
         //there is a case og '=' - initialize a different var to
         if (vec[2].compare("=") == 0) {
-//            Expression* exp=interpreter.interpret(vec[3]);
-            if (isdigit(atoi(vec[3].c_str()))) {
-                this->symbol_table_from_text[vec[1]] = new Var(2, stod(vec[3]), "", symbol_table_from_simulator);
-            } else {
-                Var *v = this->symbol_table_from_text.at(vec[3]);
-                this->symbol_table_from_text[vec[1]] = new Var(2, v->getValue(), "", symbol_table_from_simulator);
-            }
+            Expression *e = interpreter->interpret(vec[3]);
+            this->symbol_table_from_text[vec[1]] = new Var(2, e->calculate(), "", symbol_table_from_simulator);
+
         } else {
             if (vec[2].compare("->") == 0) {
                 dir = 0;
             }
-
-
             string path = vec[3];
             Var *t = new Var(dir, 0, path, symbol_table_from_simulator);
             this->symbol_table_from_text[name] = t;
         }
     } else {
         //maybe vec[1] is expression
-        double d = stod(vec[2]);
-        this->symbol_table_from_text[vec[0]]->setValue(d);
+        Expression *e = interpreter->interpret(vec[2]);
+        this->symbol_table_from_text[vec[0]]->setValue(e->calculate());
         //send to simulator the new value
     }
 
@@ -188,18 +189,23 @@ int PrintCommand::execute(vector<string> vec) {
 }
 
 int SleepCommand::execute(vector<string> vec) {
-    sleep(stod((vec[1])));
+    Interpreter *interpreter = new Interpreter(symbol_table_from_text);
+    Expression *e = interpreter->interpret(vec[1]);
+    std::this_thread::sleep_for(chrono::milliseconds((int) e->calculate()));
     return 3;
 }
 
 int ConditionCommand::execute(vector<string> vec) {
+    vector<string> vec1;
+    Interpreter *interpreter = new Interpreter(symbol_table_from_text);
     int i = 0;
     double val = 0;
     char sign;
     int flag1 = 0, flag2 = 1, flag3 = 0, flag4 = 1;
     string temp = "";
-    while (vec[1][i] > 64) {
-        temp += vec[1][i];
+    while (vec[1][i] > 64 || vec[1][i] < 60) {
+        if (vec[1][i] != ' ')
+            temp += vec[1][i];
         i++;
     }
     string condition_var = temp;
@@ -211,41 +217,38 @@ int ConditionCommand::execute(vector<string> vec) {
         flag2 = -1;
     if (sign == '=')
         flag4 = 0;
-    if (vec[1][i + 1] == '=') {
+    if (vec[1][i] == '=') {
         flag1 = 1;
         i++;
     }
     temp = "";
     while (i < vec[1].length()) {
-        temp += vec[1][i];
+        if (vec[1][i] != ' ')
+            temp += vec[1][i];
         i++;
     }
-    // if (isdigit(stoi(temp))) {
-    val = stod(temp);
-    flag3 = 1;
-    //}
-    //else{}
-    //צריך לעשות כאן interpeter
+    Expression *e = interpreter->interpret(temp);
+    val = e->calculate();
+    for(auto it=vec.begin()+4;it!=vec.end();++it){
+        vec1.push_back(*it);
+    }
+
     if (vec[0].compare("while") == 0) {
         while (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
                (flag4 == 0 && value == val)) {
             //כאשר הסימן הוא == דגל4 הוא 0 ולכן התנאי הראשון אינו נכון וייבדק רק השני.
             // כאשר הסימן הוא > דגל2 הוא 1- ולכן כשנכפיל בהפרש,נקבל אמת רק אם השני גדול מהראשון.
             //כאשר קיבלנו => או =< נוסיף את דגל1
-            vec.erase(vec.begin(), vec.begin() + 4);
-            parser(vec, mapCommand);
+            parser(vec1, mapCommand);
             value = symbol_table_from_text.find(condition_var)->second->getValue();
-            if (flag3 == 1) {//if var is expression that might change during the running.
-                //var=
-                flag3 = 0;
-            }
+            e = interpreter->interpret(temp);
+            val=e->calculate();
         }
     } else if (vec[0].compare("if") == 0) {
         if ((value - val) * flag2 + (flag1 * flag2) > 0) {
-            vec.erase(vec.begin(), vec.begin() + 4);
-            parser(vec, mapCommand);
+            parser(vec1, mapCommand);
         }
     }
 
-
+    return vec.size()+2;
 }

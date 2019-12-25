@@ -11,6 +11,7 @@
 #include <list>
 #include "queue"
 #include "Expression.h"
+#include "Command.h"
 using namespace std;
 /*
 class Expression {
@@ -23,12 +24,14 @@ public:
 class Interpreter {
 
 private:
-    map<string, double> mapVariables;
+    map<string,Var* > &mapVariables;
 
 
 public:
-    Expression *interpret(string str);
+    Interpreter(map<string, Var *> &mapVariables);
 
+    Expression *interpret(string str);
+/*
     void setVariables(string str);
 
     bool isNumber(char ch);
@@ -48,6 +51,7 @@ public:
     list <string> splitTheString(string str);
 
     string changeVar(string str);
+    */
 };
 class BinaryOperator : public Expression {
 protected:

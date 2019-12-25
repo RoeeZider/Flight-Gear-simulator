@@ -30,6 +30,8 @@ int main() {
     buildMapCommands();
     buildMapSimulator();
 
+
+
     //change for main argv[1]
     std::ifstream file("fly.txt");
     if (file.is_open()) {
@@ -61,27 +63,30 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
             temp.push_back(*it);
             ++it;
         }
-        string operation = commands[index];
-        //מוסיף פה משהו ללולאות
-        if (operation.compare("while") == 0 || operation.compare("if") == 0) {
-            while (*it != "}") {
-                temp.push_back(*it);
-                ++it;
+        //try
+        if (temp.size() != 0) {
+            string operation = commands[index];
+            //מוסיף פה משהו ללולאות
+            if (operation.compare("while") == 0 || operation.compare("if") == 0) {
+                while (*it != "}") {
+                    temp.push_back(*it);
+                    ++it;
+                }
             }
+            auto iterator = commandsMap.find(operation);
+            if (iterator != commandsMap.end()) {
+                c = commandsMap.at(operation);
+            } else {
+                c = commandsMap.at("var");
+            }
+            // c== &commandsMap.at(commands[index]);
+            if (c != NULL) {
+                //what if we are waiting to the number?
+                index += c->execute(temp);
+            }
+            //no memory allocating
+            temp.resize(0);
         }
-        auto iterator = commandsMap.find(operation);
-        if (iterator != commandsMap.end()) {
-            c = commandsMap.at(operation);
-        } else {
-            c = commandsMap.at("var");
-        }
-        // c== &commandsMap.at(commands[index]);
-        if (c != NULL) {
-            //what if we are waiting to the number?
-            index += c->execute(temp);
-        }
-        //no memory allocating
-        temp.resize(0);
     }
 }
 
@@ -90,7 +95,7 @@ void lexer(vector<string> &arr, string line) {
     replace(line.begin(), line.end(), '\t', ' ');
     string word;
     string word2;
-
+clearSpaces(line);
     //save the firat word from the line
     for (int i = 0; i < line.length(); i++) {
         while (line[i] != ' ' && line[i] != '(' && i < line.length()) {
@@ -145,9 +150,11 @@ void lexer(vector<string> &arr, string line) {
             arr.push_back(word2);
         } else {
             string temp;
-            temp = word2.substr(0, line.find('='));
+            temp = word2.substr(0, word2.find('='));
             arr.push_back(temp);
-            word2 = word2.substr(line.find('=') + 1);
+            arr.push_back("=");
+            word2 = word2.substr(word2.find('=') +1);
+            clearSpaces(word2);
             arr.push_back(word2);
 
         }
@@ -183,11 +190,11 @@ void lexer(vector<string> &arr, string line) {
 
 void buildMapCommands() {
     // map<string, Command *> my_map;
-    mapCommands.insert(make_pair("openDataServer", new OpenServerCommand(symbol_table_from_simulator)));
+    mapCommands.insert(make_pair("openDataServer", new OpenServerCommand(symbol_table_from_simulator,symbol_table_from_text)));
     mapCommands.insert(make_pair("connectControlClient", new ConnectCommand(symbol_table_from_text)));
     mapCommands.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text, symbol_table_from_simulator)));
     mapCommands.insert(make_pair("Print", new PrintCommand(symbol_table_from_text)));
-    mapCommands.insert(make_pair("Sleep", new SleepCommand()));
+    mapCommands.insert(make_pair("Sleep", new SleepCommand(symbol_table_from_text)));
     mapCommands.insert(make_pair("while", new ConditionCommand(symbol_table_from_text, symbol_table_from_simulator,mapCommands,
                                                                reinterpret_cast<void (*)(vector<std::string>,
                                                                                          map<std::string, struct Command *>)>(&parser))));
@@ -238,6 +245,7 @@ void buildMapSimulator() {
 }
 
 void clearSpaces(string &word) {
+    //remove space instead
     if (word[0] == ' ') {
         word = word.substr(1);
     }

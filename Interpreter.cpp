@@ -141,361 +141,164 @@ Variable &Variable::operator-=(double num) {
     return *this;
 }
 
+Expression *Interpreter::interpret(string str_exp) {
+    queue<string> output;
+    stack<char> operators;
+    stack<Expression *> rpn;
+    Expression *exp1;
+    Expression *exp2;
+    Expression *exp3;
+    char last = ' ';
+    string end = "";
+    unsigned int i = 0, j = 0, k = 0;
+    int flag = 0,counter=0;
+    string num, tempo, v;
 
-Expression *Interpreter::interpret(string str) {
-    //arrange the string
-    string str2 = changeVar(str);
-    list<string> strings = splitTheString(str2);
-    queue<string> postfixString = shuntingYard(strings);
-    //calculate
-    stack<Expression *> stackToEvaluate;
-
-    Expression *num1;
-    Expression *num2;
-
-    while (postfixString.size() != 0) {
-        if (!isOperator(postfixString.front())) {
-            stackToEvaluate.push(new Value(stod(postfixString.front())));
-            postfixString.pop();
-        } else {
-            num1 = stackToEvaluate.top();
-            stackToEvaluate.pop();
-
-
-            if (postfixString.front() == "+") {
-                num2 = stackToEvaluate.top();
-                stackToEvaluate.pop();
-                stackToEvaluate.push(new Plus(num2, num1));
-                postfixString.pop();
-
-            } else if (postfixString.front() == "-") {
-                num2 = stackToEvaluate.top();
-                stackToEvaluate.pop();
-                stackToEvaluate.push(new Minus(num2, num1));
-                postfixString.pop();
-
-            } else if (postfixString.front() == "*") {
-                num2 = stackToEvaluate.top();
-                stackToEvaluate.pop();
-                stackToEvaluate.push(new Mul(num2, num1));
-                postfixString.pop();
-
-            } else if (postfixString.front() == "/") {
-                num2 = stackToEvaluate.top();
-                stackToEvaluate.pop();
-                stackToEvaluate.push(new Div(num2, num1));
-                postfixString.pop();
-
-            } else if (postfixString.front() == "$") {
-                stackToEvaluate.push(new UMinus(num1));
-                postfixString.pop();
-            } else if (postfixString.front() == "@") {
-                stackToEvaluate.push(new UPlus(num1));
-                postfixString.pop();
+    while (i < str_exp.length()) {
+        if (str_exp[i] > 47 && str_exp[i] < 58) {// number
+            j = i;
+            while ((j < str_exp.length()) && ((str_exp[j] > 47 && str_exp[j] < 58)
+                                              || (str_exp[j] == 46))) {
+                j++;
             }
+            output.push(str_exp.substr(i, j - i));
+            if (last == 45 || last == 43) {
+                v = operators.top();
+                output.push(v);
+                operators.pop();
+            }
+            i = j - 1;
+        } else if (str_exp[i] == 43 || str_exp[i] == 45) {//+ -
+            if (str_exp.length() == i + 1 || (str_exp[i + 1] > 41 && str_exp[i + 1] < 48)) {
+                throw "illegal math expression";
+            }
+            if ((last == 40 || last == 32) &&
+                str_exp[i] == 45) {// if the last char was "("  or the begining -its uminus operator
+                operators.push('&');
+            } else if ((last == 40 || last == 32) && str_exp[i] == 43) {
+                operators.push('$');
+            } else operators.push(str_exp[i]);
+        } else if (str_exp[i] == 42 || str_exp[i] == 47) {// * /
+            if (str_exp.length() == i + 1 || (str_exp[i + 1] > 41 && str_exp[i + 1] < 48)) {
+                throw "illegal math expression";
+            }
+            if ((!operators.empty()) && (operators.top() == 42 || operators.top() == 47)) {
+                string s = "";
+                s = operators.top();
+                output.push(s);
+                operators.pop();
+            }
+            if (operators.empty() || operators.top() == 43 || operators.top() == 45 || operators.top() == 40)
+                operators.push(str_exp[i]);
+        } else if (str_exp[i] == 40) {//  (
+            operators.push(str_exp[i]);
+            counter++;
+        } else if (str_exp[i] == 41) {// )
+            counter--;
+            while ((!operators.empty()) && (operators.top() != 40)) {
+                string sl = "";
+                sl += operators.top();
+                output.push(sl);
+                operators.pop();
+            }
+            if (operators.empty()) {
+                throw "illegal math expression";
+            }
+            else {
+                operators.pop();
+            }
+        } else if ((str_exp[i] > 64 && str_exp[i] < 91) || (str_exp[i] > 96 && str_exp[i] < 123)) {
+            k = i;
+            while ((k < str_exp.length()) && ((str_exp[k] > 47 && str_exp[k] < 58) ||
+                                              (str_exp[k] > 64 && str_exp[k] < 91) ||
+                                              (str_exp[k] > 94 && str_exp[k] < 123))) {
+                k++;
+            }
+            output.push(str_exp.substr(i, k - i));
+            i = k - 1;
         }
+        last = str_exp[i];
+        i++;
+    }
+    while (!operators.empty()) {
+        end = operators.top();
+        output.push(end);
+        operators.pop();
+    }
+    if(counter!=0){
+        throw "illegal math expression";
     }
 
-    return stackToEvaluate.top();
-
-}
-
-
-list<string> Interpreter::splitTheString(string str) {
-
-    int numLeftBracket = 0;
-    int numRightBracket = 0;
-    string var = "";
-    list<string> strings;
-    list<string> vars;
-    string newStr = "";
-    string oper = "";
-    bool flag = false;
-    bool flag2 = false;
-
-    //for invalid
-    for (unsigned int i = 1; i < str.length(); i++) {
-        if (isalpha(str[i])) {
-            if (str[i - 1] == '$' || str[i - 1] == '@') {
-                throw "Bad input";
-            }
-        }
-    }
-
-    for (unsigned int i = 0; i < str.length(); i++) {
-        char ch = str[i];
-        if (isNumber(ch)) {
-            newStr = newStr + ch;
-        } else if (ch == '.') {
-            newStr = newStr + ch;
-        } else if (isOperator(ch)) {
-            //counting the bracket
-            if (ch == '(') {
-                numLeftBracket++;
-            }
-            if (ch == ')') {
-                numRightBracket++;
-            }
-
-            if (i == str.length() - 1 && checkIfOperator(ch)) {
-                throw ("Bad input");
-            }
-            if (checkIfOperator(str[i]) && checkIfOperator(str[i + 1])) {
-                throw ("Bad input");
-            }
-            if (newStr.length() != 0) {
-                strings.push_back(newStr);
-                newStr = "";
-            }
-            //convert from char to string
-            oper = string(1, ch);
-            strings.push_back(oper);
-
-        } else if (isalpha(ch)) {
-            flag2 = false;
-            flag = false;
-            var = "";
-            for (unsigned int j = i; j < str.length(); j++) {
-                if (!isOperator(str[j])) {
-                    var = var + str[j];
-                } else {
-                    vars.push_back(var);
-                    for (std::map<string, double>::iterator it = this->mapVariables.begin();
-                         it != this->mapVariables.end(); ++it) {
-                        if (it->first == var) {
-
-                            str.replace(i, var.length(), "");
-                            std::string value = std::to_string(it->second);
-                            strings.push_back(value);
-                            //for break
-                            flag2 = true;
-                            //for found var
-                            flag = true;
-                            break;
-
-                        }
-                    }
-                }
-                //we finish to check the var
-                if (flag2) {
-                    i -= var.length();
-                    break;
+    // rpn- reading from output stack to expression stack
+    while (!output.empty()) {
+        string str = output.front();
+        output.pop();
+        if (str[0] < 58 && str[0] > 47) {//its number
+            exp1 = new Value(stod(str));
+            rpn.push(exp1);
+        } else if (str[0] > 64) {//its var
+            for (auto &variable : this->mapVariables) {
+                if (variable.first == str) {
+                    double d = variable.second->getValue();
+                    exp2 = new Variable(str, d);
+                    rpn.push(exp2);
+                    flag = 1;
                 }
             }
-        }
-
-
-    }
-
-    //if we forgot a var in the end of the string
-    if (var.length() != 0 && !flag) {
-        for (std::map<string, double>::iterator it = this->mapVariables.begin();
-             it != this->mapVariables.end(); ++it) {
-
-            if (it->first == var) {
-
-                std::string value = std::to_string(it->second);
-                strings.push_back(value);
+            if (flag == 0) throw "some variables have not been set";
+        } else if (str[0] == 43) {//its +
+            if (rpn.size() >= 2) {
+                exp1 = rpn.top();
+                rpn.pop();
+                exp2 = rpn.top();
+                rpn.pop();
+                exp3 = new Plus(exp2, exp1);
+                rpn.push(exp3);
+            }
+        } else if (str[0] == 45) {// its -
+            if (rpn.size() >= 2) {
+                exp1 = rpn.top();
+                rpn.pop();
+                exp2 = rpn.top();
+                rpn.pop();
+                exp3 = new Minus(exp2, exp1);
+                rpn.push(exp3);
+            }
+        } else if (str[0] == 47) {// its /
+            if (rpn.size() >= 2) {
+                exp1 = rpn.top();
+                rpn.pop();
+                exp2 = rpn.top();
+                rpn.pop();
+                exp3 = new Div(exp2, exp1);
+                rpn.push(exp3);
+            }
+        } else if (str[0] == 42) {// its *
+            if (rpn.size() >= 2) {
+                exp1 = rpn.top();
+                rpn.pop();
+                exp2 = rpn.top();
+                rpn.pop();
+                exp3 = new Mul(exp2, exp1);
+                rpn.push(exp3);
+            }
+        } else if (str[0] == 36) {//its '$' uplus
+            if (rpn.size() >= 1) {
+                exp1 = rpn.top();
+                rpn.pop();
+                exp2 = new UPlus(exp1);
+                rpn.push(exp2);
+            }
+        } else if (str[0] == 38) {//its '&' uminus
+            if (rpn.size() >= 1) {
+                exp1 = rpn.top();
+                rpn.pop();
+                exp2 = new UMinus(exp1);
+                rpn.push(exp2);
             }
         }
-        vars.push_back(var);
     }
-
-    if (newStr.length() != 0) {
-        strings.push_back(newStr);
-    }
-    // if flag-or if isnt valid(function) throw an exception
-    if ((numLeftBracket != numRightBracket)) {
-        throw "Bad input";
-    }
-    //for uninitialized var
-    bool check;
-    for (string var1 : vars) {
-        check = false;
-        for (std::map<string, double>::iterator it = this->mapVariables.begin();
-             it != this->mapVariables.end(); ++it) {
-            if (it->first == var1) {
-                check = true;
-            }
-        }
-        if (!check) {
-            throw "Bad input";
-        }
-    }
-
-
-    return strings;
+    return rpn.top();
 }
 
-
-void Interpreter::setVariables(string str) {
-
-    string var = "";
-    string value = "";
-    list<string> variables;
-    //valid regex
-    regex validVar("[a-zA-Z]+[_a-zA-Z0-9]*");
-    regex validVal("-?[0-9].?[0-9]*");
-
-    bool flag = false;
-    string exp = "";
-    string left = "";
-    for (char ch :str) {
-        if (ch == ';') {
-            for (char c : exp) {
-                if (c == '=') {
-                    left = var;
-                    var = "";
-                } else {
-                    var = var + c;
-                }
-            }
-            //insert to map the var
-            if (regex_match(left, validVar) && regex_match(var, validVal)) {
-                for (std::map<string, double>::iterator it = this->mapVariables.begin();
-                     it != this->mapVariables.end(); ++it) {
-                    flag = false;
-                    if (it->first == left) {
-                        it->second = stod(var);
-                        flag = true;
-                        break;
-                    }
-                }
-                if (!flag) {
-                    this->mapVariables.insert({left, stod(var)});
-                }
-            } else {
-                throw "Bad input";
-            }
-            exp = "";
-            var = "";
-
-        } else {
-            exp = exp + ch;
-        }
-    }
-    if (exp.size() != 0) {
-        for (char c : exp) {
-            if (c == '=') {
-                left = var;
-                var = "";
-            } else {
-                var = var + c;
-            }
-        }
-        if (regex_match(left, validVar) && regex_match(var, validVal)) {
-            for (std::map<string, double>::iterator it = this->mapVariables.begin();
-                 it != this->mapVariables.end(); ++it) {
-                flag = false;
-                if (it->first == left) {
-                    it->second = stod(var);
-                    flag = true;
-                    break;
-                }
-            }
-            if (!flag) {
-                this->mapVariables.insert({left, stod(var)});
-            }
-        } else {
-            throw "Bad input";
-        }
-    }
-
-
-}
-
-bool Interpreter::isNumber(char ch) {
-    return (ch >= '0') && (ch <= '9');
-}
-
-bool Interpreter::isOperator(char ch) {
-    return (ch == '+') || (ch == '-') || (ch == '*') || (ch == '/') || (ch == ')') || (ch == '(') || (ch == '$') ||
-           (ch == '@');
-}
-
-bool Interpreter::isOperator(string str) {
-    return (str == "+") || (str == "-") || (str == "*") || (str == "/") || (str == "$") || (str == "@");
-}
-
-int Interpreter::precedence(string str) {
-    if ((str == "+") || (str == "-")) {
-        return 1;
-    } else if ((str == "*") || (str == "/")) {
-        return 2;
-        //for unary
-    } else if ((str == "@") || (str == "$")) {
-        return 3;
-    } else {
-        //(str == "(")
-        return 0;
-    }
-}
-
-//shunting yard algorithm
-queue<string> Interpreter::shuntingYard(list<string> strings) {
-    stack<string> myStack;
-    queue<string> myQueue;
-    string ope;
-    for (string s : strings) {
-        if (!isOperator(s) && (s != "(") && (s != ")")) {
-            myQueue.push(s);
-        }
-        if (isOperator(s)) {
-            while (!myStack.empty() && precedence(s) <= precedence(myStack.top())) {
-                myQueue.push(myStack.top());
-                myStack.pop();
-            }
-            myStack.push(s);
-        }
-        if (s == "(") {
-            myStack.push(s);
-        }
-        if (s == ")") {
-            while (myStack.top() != "(") {
-                myQueue.push(myStack.top());
-                myStack.pop();
-            }
-            myStack.pop();
-        }
-    }
-    while (!myStack.empty()) {
-        myQueue.push(myStack.top());
-        myStack.pop();
-    }
-    return myQueue;
-}
-
-string Interpreter::changeVar(string str) {
-
-    //for unary exp
-    for (unsigned int i = 0; i < str.length(); i++) {
-        if (str[i] == '-') {
-            if (i == 0) {
-                str[i] = '$';
-            } else {
-                if (str[i - 1] == '(') {
-                    str[i] = '$';
-                }
-            }
-
-        }
-        if (str[i] == '+') {
-            if (i == 0) {
-                str[i] = '@';
-            } else {
-                if (str[i - 1] == '(') {
-                    str[i] = '@';
-                }
-            }
-
-        }
-
-    }
-
-    return str;
-}
-
-bool Interpreter::checkIfOperator(char ch) {
-    return (ch == '+') || (ch == '-') || (ch == '*') || (ch == '/') || (ch == '$') ||
-           (ch == '@');
-}
+Interpreter::Interpreter(map<string, Var *> &symbol_table) : mapVariables(symbol_table) {}

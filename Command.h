@@ -9,6 +9,7 @@
 #include <queue>
 #include <list>
 #include <thread>
+#include "Interpreter.h"
 
 using namespace std;
 
@@ -61,6 +62,8 @@ public:
 };
 
 class Command {
+protected:
+   // Interpreter* interpreter;
 public:
     virtual int execute(vector<string>) = 0;
 
@@ -71,8 +74,9 @@ public:
 class OpenServerCommand : public Command {
 public:
     map<string, double> &symbol_table_from_simulator;
-
-    OpenServerCommand(map<string, double> &symbol_table) : symbol_table_from_simulator(symbol_table) {};
+map<string, Var *> &symbol_table_from_text;
+    OpenServerCommand(map<string, double> &symbol_table,map<string, Var *> &from_text) : symbol_table_from_simulator(symbol_table),
+    symbol_table_from_text(from_text){};
 
     int execute(vector<string> vec);
     static void  readFromSimulator(int client_socket,map<string, double> symbol_table_from_simulator);
@@ -114,6 +118,9 @@ public:
 
 class SleepCommand : public Command {
 public:
+       map<string, Var *> &symbol_table_from_text;
+
+    SleepCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
     int execute(vector<string> vec);
 };
 
