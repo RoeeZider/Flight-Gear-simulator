@@ -1,3 +1,4 @@
+Roee Zider, [25.12.19 17:36]
 //
 // Created by roee on 17/12/2019.
 //
@@ -118,7 +119,8 @@ int ConnectCommand::execute(vector<string> vec) {
         return -1;
     }
 
-    //We need to create a sockaddr obj to hold address of server
+    Roee Zider, [25.12.19 17:36]
+//We need to create a sockaddr obj to hold address of server
     sockaddr_in address; //in means IP4
     address.sin_family = AF_INET;//IP4
     address.sin_addr.s_addr = inet_addr("127.0.0.1");  //the localhost address
@@ -227,12 +229,22 @@ int ConditionCommand::execute(vector<string> vec) {
             temp += vec[1][i];
         i++;
     }
+    <<<<<<< HEAD
     Expression *e = interpreter->interpret(temp);
     val = e->calculate();
     for(auto it=vec.begin()+4;it!=vec.end();++it){
         vec1.push_back(*it);
     }
 
+    Roee Zider, [25.12.19 17:36]
+    =======
+    if (isdigit(atoi(temp.c_str()))) {
+        val = stod(temp);
+        flag3 = 1;
+    }
+    //else{}
+    //צריך לעשות כאן interpeter
+    >>>>>>> origin/master
     if (vec[0].compare("while") == 0) {
         while (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
                (flag4 == 0 && value == val)) {
@@ -245,10 +257,20 @@ int ConditionCommand::execute(vector<string> vec) {
             val=e->calculate();
         }
     } else if (vec[0].compare("if") == 0) {
+        <<<<<<< HEAD
         if ((value - val) * flag2 + (flag1 * flag2) > 0) {
             parser(vec1, mapCommand);
         }
     }
 
     return vec.size()+2;
+    =======
+    if (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
+        (flag4 == 0 && value == val)) {
+        vec.erase(vec.begin(), vec.begin() + 4);
+        parser(vec, mapCommand);
+    }
+}
+
+>>>>>>> origin/master
 }
