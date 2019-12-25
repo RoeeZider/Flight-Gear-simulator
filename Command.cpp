@@ -220,10 +220,10 @@ int ConditionCommand::execute(vector<string> vec) {
         temp += vec[1][i];
         i++;
     }
-    // if (isdigit(stoi(temp))) {
-    val = stod(temp);
-    flag3 = 1;
-    //}
+    if (isdigit(atoi(temp.c_str()))) {
+        val = stod(temp);
+        flag3 = 1;
+    }
     //else{}
     //צריך לעשות כאן interpeter
     if (vec[0].compare("while") == 0) {
@@ -241,11 +241,11 @@ int ConditionCommand::execute(vector<string> vec) {
             }
         }
     } else if (vec[0].compare("if") == 0) {
-        if ((value - val) * flag2 + (flag1 * flag2) > 0) {
+        if (flag4 * ((value - val) * flag2 > 0) || (flag1 == 1 && ((value - val) * flag2 >= 0)) ||
+            (flag4 == 0 && value == val)) {
             vec.erase(vec.begin(), vec.begin() + 4);
             parser(vec, mapCommand);
         }
     }
-
 
 }
