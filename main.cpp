@@ -27,6 +27,8 @@ static vector<string> commands;
 static map<string, Command *> mapCommands;
 
 int main() {
+
+
     buildMapCommands();
     buildMapSimulator();
    symbol_table_from_text["end_client"]=new Var(5,0,"5",symbol_table_from_simulator);
@@ -90,8 +92,10 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
 }
 
 void lexer(vector<string> &arr, string line) {
-
     replace(line.begin(), line.end(), '\t', ' ');
+    clearSpaces(line);
+    clearSpaces(line);
+    clearSpaces(line);
     string word;
     string word2;
 clearSpaces(line);
@@ -145,11 +149,13 @@ clearSpaces(line);
                 word2 = word2.substr(y + 1);
             }
             word2 = word2.substr(word2.find('(') + 1);
-            word2 = word2.substr(0, word2.length() - 1);
+            word2 = word2.substr(1, word2.length() - 3);
             arr.push_back(word2);
+
         } else {
             string temp;
             temp = word2.substr(0, word2.find('='));
+            clearSpaces(temp);
             arr.push_back(temp);
             arr.push_back("=");
             word2 = word2.substr(word2.find('=') +1);
@@ -205,8 +211,8 @@ void buildMapCommands() {
 
 void buildMapSimulator() {
     symbol_table_from_simulator["/instrumentation/airspeed-indicator/indicated-speed-kt"] = 0;
-    symbol_table_from_simulator["sim/time/warp"] = 0;
-    symbol_table_from_simulator["controls/switches/magnetos"] = 0;
+    symbol_table_from_simulator["/sim/time/warp"] = 0;
+    symbol_table_from_simulator["/controls/switches/magnetos"] = 0;
     symbol_table_from_simulator["/instrumentation/heading-indicator/offset-deg"] = 0;
     symbol_table_from_simulator["/instrumentation/altimeter/indicated-altitude-ft"] = 0;
     symbol_table_from_simulator["/instrumentation/altimeter/pressure-alt-ft"] = 0;
@@ -217,7 +223,7 @@ void buildMapSimulator() {
     symbol_table_from_simulator["/instrumentation/encoder/indicated-altitude-ft"] = 0;
     symbol_table_from_simulator["/instrumentation/encoder/pressure-alt-ft"] = 0;
     symbol_table_from_simulator["/instrumentation/gps/indicated-altitude-ft"] = 0;
-    symbol_table_from_simulator["/instrumentation/gps/indicated-ground-speed-kt\""] = 0;
+    symbol_table_from_simulator["/instrumentation/gps/indicated-ground-speed-kt"] = 0;
     symbol_table_from_simulator["/instrumentation/gps/indicated-vertical-speed"] = 0;
     symbol_table_from_simulator["/instrumentation/heading-indicator/indicated-heading-deg"] = 0;
     symbol_table_from_simulator["/instrumentation/magnetic-compass/indicated-heading-deg"] = 0;
@@ -229,16 +235,16 @@ void buildMapSimulator() {
     symbol_table_from_simulator["/controls/flight/rudder"] = 0;
     symbol_table_from_simulator["/controls/flight/flaps"] = 0;
     symbol_table_from_simulator["/controls/engines/engine/throttle"] = 0;
-    symbol_table_from_simulator["controls/engines/current-engine/throttle"] = 0;
-    symbol_table_from_simulator["controls/switches/master-avionics"] = 0;
-    symbol_table_from_simulator["controls/switches/starter"] = 0;
-    symbol_table_from_simulator["engines/active-engine/auto-start"] = 0;
-    symbol_table_from_simulator["controls/flight/speedbrake"] = 0;
-    symbol_table_from_simulator["sim/model/c172p/brake-parking"] = 0;
-    symbol_table_from_simulator["controls/engines/engine/primer"] = 0;
-    symbol_table_from_simulator["controls/engines/current-engine/mixture"] = 0;
-    symbol_table_from_simulator["controls/switches/master-bat"] = 0;
-    symbol_table_from_simulator["controls/switches/master-alt"] = 0;
+    symbol_table_from_simulator["/controls/engines/current-engine/throttle"] = 0;
+    symbol_table_from_simulator["/controls/switches/master-avionics"] = 0;
+    symbol_table_from_simulator["/controls/switches/starter"] = 0;
+    symbol_table_from_simulator["/engines/active-engine/auto-start"] = 0;
+    symbol_table_from_simulator["/controls/flight/speedbrake"] = 0;
+    symbol_table_from_simulator["/sim/model/c172p/brake-parking"] = 0;
+    symbol_table_from_simulator["/controls/engines/engine/primer"] = 0;
+    symbol_table_from_simulator["/controls/engines/current-engine/mixture"] = 0;
+    symbol_table_from_simulator["/controls/switches/master-bat"] = 0;
+    symbol_table_from_simulator["/controls/switches/master-alt"] = 0;
     symbol_table_from_simulator["/engines/engine/rpm"] = 0;
 
 }

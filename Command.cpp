@@ -15,13 +15,25 @@
 #include <thread>
 #include <mutex>
 
+double Var::getValue() {
+    if (this->in1_out0 == 1) {
+        double it = symbol_table_from_simulator.at(sim);
+        cout<<it<<" tkhgvsdcjwrf qerrfjlhgqwef"<<endl;
+        this->value = it;
+    }
+    return this->value;
+}
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
+    std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
     cout << symbol_table_from_simulator.size() << endl;
     int valread;
+    cout<<"bi   "<<client_socket<<endl;
     string s;
     mutex m;
     char buffer[1024] = {0};
     valread = read(client_socket, buffer, 1024);
+    cout<<valread<<endl;
+    cout<<"in th"<<buffer<<endl;
     //when we will end the loop?
     while (valread > 0) {
         s = buffer;
@@ -36,8 +48,12 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
             cout << it->first + " " << it->second << endl;
             valread = read(client_socket, buffer, 1024);
         }
+        std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
         m.unlock();
     }
+    close(client_socket);
+//dont forget close socket
+
 }
 
 void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_table_from_text) {
@@ -51,11 +67,12 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_
             if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
                 it->second->setSent();
                 char messege[] = "";
-                string mes = "set " + it->second->getSim().substr(2, it->second->getSim().length() - 3) + " ";
+                string mes = "set " + it->second->getSim() + " ";
                 mes += to_string(it->second->getValue());
-                mes += "\r\n";
+                //mes += "\r\n";
                 strcpy(messege, mes.c_str());
-                cout << mes << endl;
+                cout << messege << endl;
+                messege[strlen(messege)]='\r\n';
                 int is_sent = send(client_socket, messege, strlen(messege), 0);
             }
         }
@@ -103,12 +120,12 @@ int OpenServerCommand::execute(vector<string> vec) {
     }
     std::cout << "Server is coonected" << endl;
     int valread = read(client_socket, buffer, 1024);
+    cout<<"hi   "<<client_socket<<endl;
     cout << buffer << endl;
     thread t1(readFromSimulator, client_socket, ref(symbol_table_from_simulator));
     t1.detach();
     //maybe just if done
-    close(client_socket);
-    close(server_fd);
+
     //num of jumping
     return 3;
 }
@@ -224,7 +241,9 @@ int ConditionCommand::execute(vector<string> vec) {
         i++;
     }
     string condition_var = temp;
-    double value = symbol_table_from_text.find(condition_var)->second->getValue();
+    auto it=symbol_table_from_text.find(condition_var);
+    Var* vari=it->second;
+    double value =vari->getValue();
     cout<<val<<" זהו הערך של rpm"<<endl;
     sign = vec[1][i];
     i++;

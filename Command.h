@@ -3,6 +3,7 @@
 //
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include "Expression.h"
@@ -30,19 +31,13 @@ public:
             symbol_table) {
         in1_out0 = direction;
         value = val;
-        sim = simu;
+        sim = std::move(simu);
         sent = 0;
     };
 
     int getDirection() { return this->in1_out0; };
 
-    double getValue() {
-        if (this->in1_out0 == 1) {
-            auto it = symbol_table_from_simulator.find(sim);
-            this->value = it->second;
-        }
-        return this->value;
-    };
+    double getValue();
 
     string getSim() { return this->sim; };
 
@@ -67,7 +62,7 @@ protected:
 public:
     virtual int execute(vector<string>) = 0;
 
-    virtual ~Command() {}
+    virtual ~Command() = default;
 };
 
 
@@ -78,7 +73,7 @@ public:
     OpenServerCommand(map<string, double> &symbol_table,map<string, Var *> &from_text) : symbol_table_from_simulator(symbol_table),
     symbol_table_from_text(from_text){};
 
-    int execute(vector<string> vec);
+    int execute(vector<string> vec) override;
    static void  readFromSimulator(int client_socket,map<string, double> &symbol_table_from_simulator);
       //void readFromSimulator(int client_socket);
 };
@@ -88,7 +83,7 @@ public:
 
     map<string, Var *> &symbol_table_from_text;
 
-    ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
+    explicit ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
 
     int execute(vector<string> vec) override;
 
@@ -104,24 +99,24 @@ public:
             symbol_table_from_text(symbol_table),
             symbol_table_from_simulator(from_simulator) {};
 
-    int execute(vector<string> vec);
+    int execute(vector<string> vec) override;
 };
 
 class PrintCommand : public Command {
 public:
     map<string, Var *> &symbol_table_from_text;
 
-    PrintCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
+    explicit PrintCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
 
-    int execute(vector<string> vec);
+    int execute(vector<string> vec) override;
 };
 
 class SleepCommand : public Command {
 public:
        map<string, Var *> &symbol_table_from_text;
 
-    SleepCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
-    int execute(vector<string> vec);
+    explicit SleepCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
+    int execute(vector<string> vec) override;
 };
 
 class ConditionCommand : public Command {
@@ -139,7 +134,7 @@ public:
            parser=func;
    };
 
-    int execute(vector<string> vec);
+    int execute(vector<string> vec) override;
 };
 
 
