@@ -49,7 +49,7 @@ int main() {
         std::cout << *it + ',' << endl;
 
     parser(commands, mapCommands);
-
+    symbol_table_from_text["end_client"]->setValue(5);
     return 0;
 }
 
@@ -88,7 +88,7 @@ void parser(vector<string> &commands, map<string, Command *> &commandsMap) {
             temp.resize(0);
         }
     }
-    symbol_table_from_text["end_client"]->setValue(5);
+
 }
 
 void lexer(vector<string> &arr, string line) {

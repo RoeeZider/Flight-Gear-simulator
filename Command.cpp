@@ -18,48 +18,70 @@
 double Var::getValue() {
     if (this->in1_out0 == 1) {
         double it = symbol_table_from_simulator.at(sim);
-        cout<<it<<" tkhgvsdcjwrf qerrfjlhgqwef"<<endl;
+        //   cout<<it<<" at get value"<<endl;
         this->value = it;
     }
     return this->value;
 }
+
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
-    std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
-    cout << symbol_table_from_simulator.size() << endl;
+   // std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
+    // cout << symbol_table_from_simulator.size() << endl;
     int valread;
-    cout<<"bi   "<<client_socket<<endl;
+    //cout << "bi   " << client_socket << endl;
     string s;
     mutex m;
     char buffer[1024] = {0};
     valread = read(client_socket, buffer, 1024);
-    cout<<valread<<endl;
-    cout<<"in th"<<buffer<<endl;
+    // cout << valread << endl;
+    //cout << "in th" << buffer << endl;
+    int j=0;
+    int k=0;
+    string newstr;
     //when we will end the loop?
-    while (valread > 0) {
-        s = buffer;
-        m.lock();
-        cout<<"הגיע לפה"<<endl;
-        for (auto it = symbol_table_from_simulator.begin();
-             it != symbol_table_from_simulator.end(); ++it) {
-            int pos = s.find(",");
-            float val = stof(s.substr(0, pos));
-            it->second = val;
-            s = s.substr(pos + 1);
-            cout << it->first + " " << it->second << endl;
-            valread = read(client_socket, buffer, 1024);
+    s = buffer;
+    while (s != " ") {
+        newstr = "";
+
+        while (s[k] != '\n') {
+            k++;
         }
-        std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
-        m.unlock();
+        j = k + 1;
+        while (s[j] != '\n') {
+            newstr += s[j];
+            j++;
+        }
+
+        m.lock();
+        if (newstr.size() > 250) {
+            cout << "read from simulator:" << endl;
+            for (auto it = symbol_table_from_simulator.begin();
+                 it != symbol_table_from_simulator.end(); ++it) {
+                cout << newstr << endl;
+                int pos = newstr.find(",");
+                float val = stof(newstr.substr(0, pos));
+                it->second = val;
+                newstr = newstr.substr(pos + 1);
+                cout << it->first + " " << it->second << endl;
+
+            }
+
+        }
+        valread = read(client_socket, buffer, 1024);
+        s = buffer;
     }
+    std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
+    m.unlock();
+
     close(client_socket);
 //dont forget close socket
 
 }
 
 void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_table_from_text) {
-    cout << "inside client thread " << symbol_table_from_text.size();
+    cout << "inside client thread " << endl;
     mutex m;
-    cout << symbol_table_from_text.find("end_client")->second->getValue() << endl;
+    //cout << symbol_table_from_text.find("end_client")->second->getValue() << endl;
     while (symbol_table_from_text.find("end_client")->second->getValue() != 5) {
         m.lock();
         for (auto it = symbol_table_from_text.begin();
@@ -67,17 +89,18 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_
             if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
                 it->second->setSent();
                 char messege[] = "";
-                string mes = "set " + it->second->getSim() + " ";
-                mes += to_string(it->second->getValue());
-                //mes += "\r\n";
-                strcpy(messege, mes.c_str());
-                cout << messege << endl;
-                messege[strlen(messege)]='\r\n';
-                int is_sent = send(client_socket, messege, strlen(messege), 0);
+                string mes = "set " + it->second->getSim() + " " + to_string(it->second->getValue()) + "\r\n";
+
+                // mes += mes+"\r\n";
+
+                cout << mes << endl;
+                //   this_thread::sleep_for(chrono::seconds(1));
+                //  messege[strlen(messege)] = '\r\n';
+                int is_sent = send(client_socket, mes.c_str(), strlen(messege), 0);
             }
         }
         m.unlock();
-        sleep(2);
+        //  sleep(2);
     }
 }
 
@@ -119,9 +142,6 @@ int OpenServerCommand::execute(vector<string> vec) {
         return -4;
     }
     std::cout << "Server is coonected" << endl;
-    int valread = read(client_socket, buffer, 1024);
-    cout<<"hi   "<<client_socket<<endl;
-    cout << buffer << endl;
     thread t1(readFromSimulator, client_socket, ref(symbol_table_from_simulator));
     t1.detach();
     //maybe just if done
@@ -169,7 +189,7 @@ int ConnectCommand::execute(vector<string> vec) {
     //need to change it to the end of the file
     thread t2(readFromText, client_socket, ref(symbol_table_from_text));
     t2.detach();
-    close(client_socket);
+    //  close(client_socket);
     return 3;
 }
 
@@ -241,10 +261,13 @@ int ConditionCommand::execute(vector<string> vec) {
         i++;
     }
     string condition_var = temp;
-    auto it=symbol_table_from_text.find(condition_var);
-    Var* vari=it->second;
-    double value =vari->getValue();
-    cout<<val<<" זהו הערך של rpm"<<endl;
+    if (condition_var.compare("rpm") == 0) {
+
+    }
+    auto it = symbol_table_from_text.find(condition_var);
+    Var *vari = it->second;
+    double value = vari->getValue();
+    //cout << val << " זהו הערך של rpm" << endl;
     sign = vec[1][i];
     i++;
     //אם הסימן הוא >  פלאג2 הוא -1
