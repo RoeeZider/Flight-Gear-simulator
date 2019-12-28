@@ -33,7 +33,7 @@ public:
         in1_out0 = direction;
         value = val;
         sim = std::move(simu);
-        sent = 0;
+        sent = 1;
     };
 
     int getDirection() { return this->in1_out0; };
