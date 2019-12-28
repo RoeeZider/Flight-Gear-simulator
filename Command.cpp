@@ -25,7 +25,7 @@ double Var::getValue() {
 }
 
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
-   // std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
+   std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
     // cout << symbol_table_from_simulator.size() << endl;
     int valread;
     //cout << "bi   " << client_socket << endl;
@@ -37,12 +37,14 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
     //cout << "in th" << buffer << endl;
     int j=0;
     int k=0;
+    int arr[36];
     string newstr;
     //when we will end the loop?
-    s = buffer;
+
     while (s != " ") {
         newstr = "";
-
+        j,k=0;
+        s = buffer;
         while (s[k] != '\n') {
             k++;
         }
@@ -52,26 +54,63 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
             j++;
         }
 
-        m.lock();
+       m.lock();
+
         if (newstr.size() > 250) {
             cout << "read from simulator:" << endl;
-            for (auto it = symbol_table_from_simulator.begin();
-                 it != symbol_table_from_simulator.end(); ++it) {
-                cout << newstr << endl;
+            cout << newstr << endl;
+            for(int i=0;i<36;i++) {
                 int pos = newstr.find(",");
                 float val = stof(newstr.substr(0, pos));
-                it->second = val;
+                arr[i] = val;
                 newstr = newstr.substr(pos + 1);
-                cout << it->first + " " << it->second << endl;
 
             }
+            symbol_table_from_simulator["/instrumentation/airspeed-indicator/indicated-speed-kt"] = arr[0];
+            symbol_table_from_simulator["/sim/time/warp"] = arr[1];
+            symbol_table_from_simulator["/controls/switches/magnetos"] = arr[2];
+            symbol_table_from_simulator["/instrumentation/heading-indicator/offset-deg"] = arr[3];
+            symbol_table_from_simulator["/instrumentation/altimeter/indicated-altitude-ft"] = arr[4];
+            symbol_table_from_simulator["/instrumentation/altimeter/pressure-alt-ft"] = arr[5];
+            symbol_table_from_simulator["/instrumentation/attitude-indicator/indicated-pitch-deg"] = arr[6];
+            symbol_table_from_simulator["/instrumentation/attitude-indicator/indicated-roll-deg"] = arr[7];
+            symbol_table_from_simulator["/instrumentation/attitude-indicator/internal-pitch-deg"] = arr[8];
+            symbol_table_from_simulator["/instrumentation/attitude-indicator/internal-roll-deg"] = arr[9];
+            symbol_table_from_simulator["/instrumentation/encoder/indicated-altitude-ft"] = arr[10];
+            symbol_table_from_simulator["/instrumentation/encoder/pressure-alt-ft"] = arr[11];
+            symbol_table_from_simulator["/instrumentation/gps/indicated-altitude-ft"] = arr[12];
+            symbol_table_from_simulator["/instrumentation/gps/indicated-ground-speed-kt"] = arr[13];
+            symbol_table_from_simulator["/instrumentation/gps/indicated-vertical-speed"] = arr[14];
+            symbol_table_from_simulator["/instrumentation/heading-indicator/indicated-heading-deg"] = arr[15];
+            symbol_table_from_simulator["/instrumentation/magnetic-compass/indicated-heading-deg"] = arr[16];
+            symbol_table_from_simulator["/instrumentation/slip-skid-ball/indicated-slip-skid"] = arr[17];
+            symbol_table_from_simulator["/instrumentation/turn-indicator/indicated-turn-rate"] = arr[18];
+            symbol_table_from_simulator["/instrumentation/vertical-speed-indicator/indicated-speed-fpm"] = arr[19];
+            symbol_table_from_simulator["/controls/flight/aileron"] = arr[20];
+            symbol_table_from_simulator["/controls/flight/elevator"] = arr[21];
+            symbol_table_from_simulator["/controls/flight/rudder"] = arr[22];
+            symbol_table_from_simulator["/controls/flight/flaps"] = arr[23];
+            symbol_table_from_simulator["/controls/engines/engine/throttle"] = arr[24];
+            symbol_table_from_simulator["/controls/engines/current-engine/throttle"] = arr[25];
+            symbol_table_from_simulator["/controls/switches/master-avionics"] = arr[26];
+            symbol_table_from_simulator["/controls/switches/starter"] = arr[27];
+            symbol_table_from_simulator["/engines/active-engine/auto-start"] = arr[28];
+            symbol_table_from_simulator["/controls/flight/speedbrake"] = arr[29];
+            symbol_table_from_simulator["/sim/model/c172p/brake-parking"] = arr[30];
+            symbol_table_from_simulator["/controls/engines/engine/primer"] = arr[31];
+            symbol_table_from_simulator["/controls/engines/current-engine/mixture"] = arr[32];
+            symbol_table_from_simulator["/controls/switches/master-bat"] = arr[33];
+            symbol_table_from_simulator["/controls/switches/master-alt"] = arr[34];
+            symbol_table_from_simulator["/engines/engine/rpm"] = arr[35];
 
         }
+        std::this_thread::sleep_for(chrono::milliseconds((int) 6000));
+        m.unlock();
         valread = read(client_socket, buffer, 1024);
         s = buffer;
     }
-    std::this_thread::sleep_for(chrono::milliseconds((int) 60000));
-    m.unlock();
+
+ //   m.unlock();
 
     close(client_socket);
 //dont forget close socket
@@ -89,11 +128,10 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_
             if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
                 it->second->setSent();
                 char messege[] = "";
-                string mes = "set " + it->second->getSim() + " " + to_string(it->second->getValue()) + "\r\n";
-
+                string temp=it->second->getSim().substr(1);
+                string mes = "set " + temp + " " + to_string(it->second->getValue()) + " \r\n";
                 // mes += mes+"\r\n";
-
-                cout << mes << endl;
+                cout << mes.c_str() << endl;
                 //   this_thread::sleep_for(chrono::seconds(1));
                 //  messege[strlen(messege)] = '\r\n';
                 int is_sent = send(client_socket, mes.c_str(), strlen(messege), 0);
