@@ -140,7 +140,4 @@ public:
 
 
 
-
-
-
 #endif //FLIGHTGEAR_COMMNAD_H

@@ -25,7 +25,7 @@ double Var::getValue() {
 }
 
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
-   std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
+    std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
     // cout << symbol_table_from_simulator.size() << endl;
     int valread;
     //cout << "bi   " << client_socket << endl;
@@ -54,7 +54,7 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
             j++;
         }
 
-       m.lock();
+        m.lock();
 
         if (newstr.size() > 250) {
             cout << "read from simulator:" << endl;
@@ -110,7 +110,7 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
         s = buffer;
     }
 
- //   m.unlock();
+    //   m.unlock();
 
     close(client_socket);
 //dont forget close socket
@@ -134,7 +134,8 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_
                 cout << mes.c_str() << endl;
                 //   this_thread::sleep_for(chrono::seconds(1));
                 //  messege[strlen(messege)] = '\r\n';
-                int is_sent = send(client_socket, mes.c_str(), strlen(messege), 0);
+
+                int is_sent = send(client_socket, mes.c_str(), strlen(mes.c_str()), 0);
             }
         }
         m.unlock();
@@ -220,8 +221,7 @@ int ConnectCommand::execute(vector<string> vec) {
         return -2;
     } else {
         std::cout << "Client is now connected to server" << std::endl;
-        char messege[] = "set controls/flight/rudder -1\r\n";
-        int is_sent = send(client_socket, messege, strlen(messege), 0);
+
     }
     //if here we made a connection
     //need to change it to the end of the file

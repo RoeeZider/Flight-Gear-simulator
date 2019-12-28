@@ -31,7 +31,7 @@ int main() {
 
     buildMapCommands();
     buildMapSimulator();
-   symbol_table_from_text["end_client"]=new Var(5,0,"5",symbol_table_from_simulator);
+    symbol_table_from_text["end_client"]=new Var(5,0,"5",symbol_table_from_simulator);
     //change for main argv[1]
     std::ifstream file("fly.txt");
     if (file.is_open()) {
@@ -98,7 +98,7 @@ void lexer(vector<string> &arr, string line) {
     clearSpaces(line);
     string word;
     string word2;
-clearSpaces(line);
+    clearSpaces(line);
     //save the firat word from the line
     for (int i = 0; i < line.length(); i++) {
         while (line[i] != ' ' && line[i] != '(' && i < line.length()) {
