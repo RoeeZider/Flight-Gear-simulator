@@ -41,7 +41,7 @@ void Var::setSent() {
 int Var::getSent() {
     return this->sent;
 }
-
+//
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
     std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
     cout << "in rfsim" << endl;
