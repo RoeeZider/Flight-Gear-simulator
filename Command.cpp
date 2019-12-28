@@ -24,9 +24,27 @@ double Var::getValue() {
     return this->value;
 }
 
+int Var::getDirection() { return this->in1_out0; }
+
+string Var::getSim() { return this->sim; }
+
+void Var::setValue(double new_val) {
+    this->value = new_val;
+    if (this->getDirection() == 0)
+        this->sent = 0;
+}
+
+void Var::setSent() {
+    this->sent = 1;
+}
+
+int Var::getSent() {
+    return this->sent;
+}
+
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
     std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
-    // cout << symbol_table_from_simulator.size() << endl;
+    cout << "in rfsim" << endl;
     int valread;
     //cout << "bi   " << client_socket << endl;
     string s;
@@ -35,15 +53,15 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
     valread = read(client_socket, buffer, 1024);
     // cout << valread << endl;
     //cout << "in th" << buffer << endl;
-    int j=0;
-    int k=0;
+    int j = 0;
+    int k = 0;
     int arr[36];
     string newstr;
     //when we will end the loop?
 
     while (s != " ") {
         newstr = "";
-        j,k=0;
+        j, k = 0;
         s = buffer;
         while (s[k] != '\n') {
             k++;
@@ -59,7 +77,7 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
         if (newstr.size() > 250) {
             cout << "read from simulator:" << endl;
             cout << newstr << endl;
-            for(int i=0;i<36;i++) {
+            for (int i = 0; i < 36; i++) {
                 int pos = newstr.find(",");
                 float val = stof(newstr.substr(0, pos));
                 arr[i] = val;
@@ -128,13 +146,9 @@ void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_
             if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
                 it->second->setSent();
                 char messege[] = "";
-                string temp=it->second->getSim().substr(1);
-                string mes = "set " + temp + " " + to_string(it->second->getValue()) + " \r\n";
-                // mes += mes+"\r\n";
+                string temp = it->second->getSim().substr(1);
+                string mes = "set " + temp + " " + to_string(it->second->getValue()) + "\r\n";
                 cout << mes.c_str() << endl;
-                //   this_thread::sleep_for(chrono::seconds(1));
-                //  messege[strlen(messege)] = '\r\n';
-
                 int is_sent = send(client_socket, mes.c_str(), strlen(mes.c_str()), 0);
             }
         }
@@ -221,7 +235,6 @@ int ConnectCommand::execute(vector<string> vec) {
         return -2;
     } else {
         std::cout << "Client is now connected to server" << std::endl;
-
     }
     //if here we made a connection
     //need to change it to the end of the file
@@ -235,7 +248,7 @@ int ConnectCommand::execute(vector<string> vec) {
 //הוספה בחמישי בערב
 int DefineVarCommand::execute(vector<string> vec) {
     Interpreter *interpreter = new Interpreter(symbol_table_from_text);
-
+    cout << "in dVar" << endl;
     int dir = 1;
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
@@ -264,6 +277,7 @@ int DefineVarCommand::execute(vector<string> vec) {
 }
 
 int PrintCommand::execute(vector<string> vec) {
+    cout << "in Pri" << endl;
     string printLine = vec[1];
     if (vec[1][0] != 34) {//34 is the char " in ascii
         Interpreter *i = new Interpreter(symbol_table_from_text);
@@ -279,6 +293,7 @@ int PrintCommand::execute(vector<string> vec) {
 }
 
 int SleepCommand::execute(vector<string> vec) {
+    cout << "in Slep" << endl;
     Interpreter *interpreter = new Interpreter(symbol_table_from_text);
     Expression *e = interpreter->interpret(vec[1]);
     std::this_thread::sleep_for(chrono::milliseconds((int) e->calculate()));
@@ -286,6 +301,7 @@ int SleepCommand::execute(vector<string> vec) {
 }
 
 int ConditionCommand::execute(vector<string> vec) {
+    cout << "in ConditionCo" << endl;
     vector<string> vec1;
     Interpreter *interpreter = new Interpreter(symbol_table_from_text);
     int i = 0;
@@ -345,7 +361,6 @@ int ConditionCommand::execute(vector<string> vec) {
             parser(vec1, mapCommand);
         }
     }
-
     return vec.size() + 2;
 
 }

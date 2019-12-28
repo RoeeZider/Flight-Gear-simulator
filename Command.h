@@ -36,25 +36,17 @@ public:
         sent = 1;
     };
 
-    int getDirection() { return this->in1_out0; };
+    int getDirection();
 
     double getValue();
 
-    string getSim() { return this->sim; };
+    string getSim();
 
-    void setValue(double new_val) {
-        this->value = new_val;
-        if (this->getDirection() == 0)
-            this->sent = 0;
-    };
+    void setValue(double new_val);
 
-    void setSent() {
-        this->sent = 1;
-    };
+    void setSent();
 
-    int getSent() {
-        return this->sent;
-    };
+    int getSent();
 };
 
 class Command {
@@ -76,7 +68,6 @@ public:
 
     int execute(vector<string> vec) override;
    static void  readFromSimulator(int client_socket,map<string, double> &symbol_table_from_simulator);
-      //void readFromSimulator(int client_socket);
 };
 
 class ConnectCommand : public Command {
