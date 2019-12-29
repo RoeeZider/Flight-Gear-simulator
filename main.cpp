@@ -12,7 +12,7 @@ using namespace std;
 //declarations
 static map<string, double> symbol_table_from_simulator;
 static map<string, Var *> symbol_table_from_text;
-
+static queue<string> commandsQueue;
 void lexer(vector<string> &arr, string line);
 
 void buildMapCommands();
@@ -28,10 +28,8 @@ static map<string, Command *> mapCommands;
 
 int main() {
 
-
     buildMapCommands();
     buildMapSimulator();
-    symbol_table_from_text["end_client"]=new Var(5,0,"5",symbol_table_from_simulator);
     //change for main argv[1]
     std::ifstream file("fly.txt");
     if (file.is_open()) {
@@ -49,7 +47,7 @@ int main() {
         std::cout << *it + ',' << endl;
 
     parser(commands, mapCommands);
-    symbol_table_from_text["end_client"]->setValue(5);
+    commandsQueue.push("end_client");
     return 0;
 }
 
@@ -196,8 +194,8 @@ void lexer(vector<string> &arr, string line) {
 void buildMapCommands() {
     // map<string, Command *> my_map;
     mapCommands.insert(make_pair("openDataServer", new OpenServerCommand(symbol_table_from_simulator,symbol_table_from_text)));
-    mapCommands.insert(make_pair("connectControlClient", new ConnectCommand(symbol_table_from_text)));
-    mapCommands.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text, symbol_table_from_simulator)));
+    mapCommands.insert(make_pair("connectControlClient", new ConnectCommand(commandsQueue)));
+    mapCommands.insert(make_pair("var", new DefineVarCommand(symbol_table_from_text, symbol_table_from_simulator,commandsQueue)));
     mapCommands.insert(make_pair("Print", new PrintCommand(symbol_table_from_text)));
     mapCommands.insert(make_pair("Sleep", new SleepCommand(symbol_table_from_text)));
     mapCommands.insert(make_pair("while", new ConditionCommand(symbol_table_from_text, symbol_table_from_simulator,mapCommands,

@@ -62,7 +62,6 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
     s = buffer;
     while (s != " ") {
         newstr = "";
-        j = 0;
         k = 0;
 
         while (s[k] != '\n') {
@@ -137,25 +136,18 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
 
 }
 
-void ConnectCommand::readFromText(int client_socket, map<string, Var *> &symbol_table_from_text) {
+void ConnectCommand::readFromText(int client_socket, queue<string> &commandsQueue) {
     cout << "inside client thread " << endl;
     mutex m;
-    //cout << symbol_table_from_text.find("end_client")->second->getValue() << endl;
-    while (symbol_table_from_text.find("end_client")->second->getValue() != 5) {
+    while (commandsQueue.front() != "end_client") {
         m.lock();
-        for (auto it = symbol_table_from_text.begin();
-             it != symbol_table_from_text.end(); ++it) {
-            if (it->second->getDirection() == 0 && it->second->getSent() == 0) {
-                it->second->setSent();
-                char messege[] = "";
-                string temp = it->second->getSim().substr(1);
-                string mes = "set " + temp + " " + to_string(it->second->getValue()) + "\r\n";
-                cout << mes.c_str() << endl;
-                int is_sent = send(client_socket, mes.c_str(), strlen(mes.c_str()), 0);
-            }
+        while (!commandsQueue.empty()) {
+            string temp = commandsQueue.front();
+            cout << temp.c_str() << endl;
+            int is_sent = send(client_socket, temp.c_str(), strlen(temp.c_str()), 0);
+            commandsQueue.pop();
         }
         m.unlock();
-        //  sleep(2);
     }
 }
 
@@ -210,7 +202,8 @@ int ConnectCommand::execute(vector<string> vec) {
     string temp = vec[1];
     int pos = temp.find(",");
     string ip = temp.substr(1, pos - 1);
-    Interpreter *interpreter = new Interpreter(symbol_table_from_text);
+    map<string, Var *> empty_map;
+    Interpreter *interpreter = new Interpreter(empty_map);
     const char *ip_c[ip.length()];
     Expression *e = interpreter->interpret(temp.substr(pos + 1));
     double p = e->calculate();
@@ -240,7 +233,7 @@ int ConnectCommand::execute(vector<string> vec) {
     }
     //if here we made a connection
     //need to change it to the end of the file
-    thread t2(readFromText, client_socket, ref(symbol_table_from_text));
+    thread t2(readFromText, client_socket, ref(commandsQueue));
     t2.detach();
     //  close(client_socket);
     return 3;
@@ -252,30 +245,42 @@ int DefineVarCommand::execute(vector<string> vec) {
     Interpreter *interpreter = new Interpreter(symbol_table_from_text);
     cout << "in dVar" << endl;
     int dir = 1;
+    string path = "";
+    double value;
+    bool flag = false;
+    string name;
     mutex m;
     m.lock();
     if (vec[0].compare("var") == 0) {
-        string name = vec[1];
+        name = vec[1];
 
         //there is a case og '=' - initialize a different var to
         if (vec[2].compare("=") == 0) {
+            flag = true;
             Expression *e = interpreter->interpret(vec[3]);
-            Var* tempo=new Var(2, e->calculate(), "", symbol_table_from_simulator);
-            this->symbol_table_from_text.insert(make_pair(vec[1],tempo));
+            Var *tempo = new Var(2, e->calculate(), "", symbol_table_from_simulator);
+            this->symbol_table_from_text.insert(make_pair(vec[1], tempo));
 
         } else {
             if (vec[2].compare("->") == 0) {
                 dir = 0;
             }
-            string path = vec[3];
+            path = vec[3];
             Var *t = new Var(dir, 0, path, symbol_table_from_simulator);
-            this->symbol_table_from_text.insert(make_pair(name,t));
+            this->symbol_table_from_text.insert(make_pair(name, t));
         }
     } else {
-        //maybe vec[1] is expression
+        name=vec[0];
+        flag =true;
         Expression *e = interpreter->interpret(vec[2]);
-        this->symbol_table_from_text[vec[0]]->setValue(e->calculate());
+        value = e->calculate();
+        this->symbol_table_from_text[vec[0]]->setValue(value);
+        path=symbol_table_from_text.at(name)->getSim();
         //send to simulator the new value
+    }
+    if (symbol_table_from_text.at(name)->getDirection() == 0 && flag) {
+        string mes = "set " + path.substr(1) + " " + to_string(value) + "\r\n";
+        commandsQueue.push(mes);
     }
     m.unlock();
     return vec.size() + 1;
@@ -288,8 +293,7 @@ int PrintCommand::execute(vector<string> vec) {
         Interpreter *i = new Interpreter(symbol_table_from_text);
         Expression *e = i->interpret(vec[1]);
         cout << e->calculate() << endl;
-    }
-    else {
+    } else {
         printLine = printLine.substr(1, printLine.length() - 1);
         cout << printLine << endl;
     }

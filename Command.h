@@ -73,23 +73,23 @@ public:
 class ConnectCommand : public Command {
 public:
 
-    map<string, Var *> &symbol_table_from_text;
-
-    explicit ConnectCommand(map<string, Var *> &symbol_table) : symbol_table_from_text(symbol_table) {};
+    //map<string, Var *> &symbol_table_from_text;
+    queue<string> &commandsQueue;
+    explicit ConnectCommand(queue<string>& qu) : commandsQueue(qu) {};
 
     int execute(vector<string> vec) override;
 
-    static void  readFromText(int client_socket,map<string, Var*> & symbol_table_from_text);
+    static void  readFromText(int client_socket,queue<string>&commandsQueue);
 };
 
 class DefineVarCommand : public Command {
 public:
     map<string, Var *>& symbol_table_from_text;
     map<string, double> &symbol_table_from_simulator;
+    queue<string> &commandsQueue;
 
-    DefineVarCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator) :
-            symbol_table_from_text(symbol_table),
-            symbol_table_from_simulator(from_simulator) {};
+    DefineVarCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator,queue<string> &qu) :
+    commandsQueue(qu),symbol_table_from_text(symbol_table),symbol_table_from_simulator(from_simulator) {};
 
     int execute(vector<string> vec) override;
 };
