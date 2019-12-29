@@ -18,7 +18,7 @@
 double Var::getValue() {
     if (this->in1_out0 == 1) {
         double it = symbol_table_from_simulator.at(sim);
-        //   cout<<it<<" at get value"<<endl;
+        // cout<<it<<" at get value"<<endl;
         this->value = it;
     }
     return this->value;
@@ -41,6 +41,7 @@ void Var::setSent() {
 int Var::getSent() {
     return this->sent;
 }
+
 //
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
     std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
@@ -58,11 +59,12 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
     int arr[36];
     string newstr;
     //when we will end the loop?
-
+    s = buffer;
     while (s != " ") {
         newstr = "";
-        j, k = 0;
-        s = buffer;
+        j = 0;
+        k = 0;
+
         while (s[k] != '\n') {
             k++;
         }
@@ -250,13 +252,16 @@ int DefineVarCommand::execute(vector<string> vec) {
     Interpreter *interpreter = new Interpreter(symbol_table_from_text);
     cout << "in dVar" << endl;
     int dir = 1;
+    mutex m;
+    m.lock();
     if (vec[0].compare("var") == 0) {
         string name = vec[1];
 
         //there is a case og '=' - initialize a different var to
         if (vec[2].compare("=") == 0) {
             Expression *e = interpreter->interpret(vec[3]);
-            this->symbol_table_from_text[vec[1]] = new Var(2, e->calculate(), "", symbol_table_from_simulator);
+            Var* tempo=new Var(2, e->calculate(), "", symbol_table_from_simulator);
+            this->symbol_table_from_text.insert(make_pair(vec[1],tempo));
 
         } else {
             if (vec[2].compare("->") == 0) {
@@ -264,7 +269,7 @@ int DefineVarCommand::execute(vector<string> vec) {
             }
             string path = vec[3];
             Var *t = new Var(dir, 0, path, symbol_table_from_simulator);
-            this->symbol_table_from_text[name] = t;
+            this->symbol_table_from_text.insert(make_pair(name,t));
         }
     } else {
         //maybe vec[1] is expression
@@ -272,7 +277,7 @@ int DefineVarCommand::execute(vector<string> vec) {
         this->symbol_table_from_text[vec[0]]->setValue(e->calculate());
         //send to simulator the new value
     }
-
+    m.unlock();
     return vec.size() + 1;
 }
 
@@ -284,7 +289,6 @@ int PrintCommand::execute(vector<string> vec) {
         Expression *e = i->interpret(vec[1]);
         cout << e->calculate() << endl;
     }
-        //clear the """
     else {
         printLine = printLine.substr(1, printLine.length() - 1);
         cout << printLine << endl;
@@ -307,7 +311,7 @@ int ConditionCommand::execute(vector<string> vec) {
     int i = 0;
     double val = 0;
     char sign;
-    int flag1 = 0, flag2 = 1, flag3 = 0, flag4 = 1;
+    int flag1 = 0, flag2 = 1, flag4 = 1;
     string temp = "";
     while (vec[1][i] > 64 || vec[1][i] < 60) {
         if (vec[1][i] != ' ')
