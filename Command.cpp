@@ -44,38 +44,32 @@ int Var::getSent() {
 
 //
 void OpenServerCommand::readFromSimulator(int client_socket, map<string, double> &symbol_table_from_simulator) {
-    std::this_thread::sleep_for(chrono::milliseconds((int) 20000));
+    std::this_thread::sleep_for(chrono::milliseconds((int) 2000));
     cout << "in rfsim" << endl;
     int valread;
-    //cout << "bi   " << client_socket << endl;
     string s;
     mutex m;
     char buffer[1024] = {0};
     valread = read(client_socket, buffer, 1024);
-    // cout << valread << endl;
-    //cout << "in th" << buffer << endl;
     int j = 0;
     int k = 0;
-    int arr[36];
+    float arr[36];
     string newstr;
-    //when we will end the loop?
     s = buffer;
     while (s != " ") {
         newstr = "";
         k = 0;
-
+        j = 0;
         while (s[k] != '\n') {
             k++;
         }
         j = k + 1;
-        while (s[j] != '\n') {
+        while (s[j] != '\n'&&j<s.length()) {
             newstr += s[j];
             j++;
         }
-
         m.lock();
-
-        if (newstr.size() > 250) {
+        if (s[j]== '\n') {
             cout << "read from simulator:" << endl;
             cout << newstr << endl;
             for (int i = 0; i < 36; i++) {
@@ -83,7 +77,6 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
                 float val = stof(newstr.substr(0, pos));
                 arr[i] = val;
                 newstr = newstr.substr(pos + 1);
-
             }
             symbol_table_from_simulator["/instrumentation/airspeed-indicator/indicated-speed-kt"] = arr[0];
             symbol_table_from_simulator["/sim/time/warp"] = arr[1];
@@ -121,19 +114,13 @@ void OpenServerCommand::readFromSimulator(int client_socket, map<string, double>
             symbol_table_from_simulator["/controls/switches/master-bat"] = arr[33];
             symbol_table_from_simulator["/controls/switches/master-alt"] = arr[34];
             symbol_table_from_simulator["/engines/engine/rpm"] = arr[35];
-
         }
-        std::this_thread::sleep_for(chrono::milliseconds((int) 6000));
+        std::this_thread::sleep_for(chrono::milliseconds((int) 1000));
         m.unlock();
         valread = read(client_socket, buffer, 1024);
         s = buffer;
     }
-
-    //   m.unlock();
-
     close(client_socket);
-//dont forget close socket
-
 }
 
 void ConnectCommand::readFromText(int client_socket, queue<string> &commandsQueue) {
@@ -270,12 +257,15 @@ int DefineVarCommand::execute(vector<string> vec) {
             this->symbol_table_from_text.insert(make_pair(name, t));
         }
     } else {
-        name=vec[0];
-        flag =true;
+        name = vec[0];
+        if(name=="aileron"){
+
+        }
+        flag = true;
         Expression *e = interpreter->interpret(vec[2]);
         value = e->calculate();
         this->symbol_table_from_text[vec[0]]->setValue(value);
-        path=symbol_table_from_text.at(name)->getSim();
+        path = symbol_table_from_text.at(name)->getSim();
         //send to simulator the new value
     }
     if (symbol_table_from_text.at(name)->getDirection() == 0 && flag) {
@@ -324,7 +314,6 @@ int ConditionCommand::execute(vector<string> vec) {
     }
     string condition_var = temp;
     if (condition_var.compare("rpm") == 0) {
-
     }
     auto it = symbol_table_from_text.find(condition_var);
     Var *vari = it->second;

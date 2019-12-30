@@ -31,27 +31,6 @@ public:
     Interpreter(map<string, Var *> &mapVariables);
 
     Expression *interpret(string str);
-/*
-    void setVariables(string str);
-
-    bool isNumber(char ch);
-
-    bool isOperator(char ch);
-
-    bool isNotValid(list <string> strings);
-
-    queue<string> shuntingYard(list <string> str);
-
-    bool isOperator(string str);
-
-    bool checkIfOperator(char ch);
-
-    int precedence(string str);
-
-    list <string> splitTheString(string str);
-
-    string changeVar(string str);
-    */
 };
 class BinaryOperator : public Expression {
 protected:

@@ -155,6 +155,8 @@ Expression *Interpreter::interpret(string str_exp) {
     string num, tempo, v;
 
     while (i < str_exp.length()) {
+        if(str_exp[i]==' ')
+            i++;
         if (str_exp[i] > 47 && str_exp[i] < 58) {// number
             j = i;
             while ((j < str_exp.length()) && ((str_exp[j] > 47 && str_exp[j] < 58)
@@ -178,7 +180,7 @@ Expression *Interpreter::interpret(string str_exp) {
             } else if ((last == 40 || last == 32) && str_exp[i] == 43) {
                 operators.push('$');
             } else operators.push(str_exp[i]);
-        } else if (str_exp[i] == 42 || str_exp[i] == 47) {// * /
+        } else if (str_exp[i] == '*' || str_exp[i] == '/') {// * /
             if (str_exp.length() == i + 1 || (str_exp[i + 1] > 41 && str_exp[i + 1] < 48)) {
                 throw "illegal math expression";
             }
@@ -188,7 +190,7 @@ Expression *Interpreter::interpret(string str_exp) {
                 output.push(s);
                 operators.pop();
             }
-            if (operators.empty() || operators.top() == 43 || operators.top() == 45 || operators.top() == 40)
+            if (operators.empty() || operators.top() == 43 || operators.top() == 45 || operators.top() == 40||operators.top() == 38)
                 operators.push(str_exp[i]);
         } else if (str_exp[i] == 40) {//  (
             operators.push(str_exp[i]);
