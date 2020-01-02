@@ -1,6 +1,8 @@
-# updatedSim
-simulator - update repository
+# Flight simulator
+
  ## FlightGear-Interpreter
+ 
+ link to github - https://github.com/RoeeZider/updatedSim
 
 An Interpreter project for a FlightGear flight simulator. The program connects to the simulator and flys the aircraft based on the user's commands , that will show withe attached file.
 
