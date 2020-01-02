@@ -1,4 +1,3 @@
-
 //
 // Created by harelfeldman on 12/15/19.
 //
@@ -12,13 +11,12 @@
 #include <list>
 #include <thread>
 #include "Interpreter.h"
-//
+
 using namespace std;
 
 #ifndef FLIGHTGEAR_COMMNAD_H
 #define FLIGHTGEAR_COMMNAD_H
 
-//הוספה בחמישי בערב
 class Var {
 private:
     int in1_out0;
@@ -118,7 +116,7 @@ public:
     map<string, double> &symbol_table_from_simulator;
     map<string,Command*> &mapCommand;
     void (*parser)(vector<string>, map<string, Command *>);
-
+//the constructor gets maps, queue and the parser function.
    ConditionCommand(map<string, Var *> &symbol_table, map<string, double> &from_simulator,map<string,Command*> &mapCommands
            ,void (* func)(vector<string>, map<string, Command *>)):
            symbol_table_from_text(symbol_table),
@@ -128,7 +126,5 @@ public:
 
     int execute(vector<string> vec) override;
 };
-
-
 
 #endif //FLIGHTGEAR_COMMNAD_H

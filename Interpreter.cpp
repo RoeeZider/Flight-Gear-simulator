@@ -3,18 +3,13 @@
 //
 
 #include "Interpreter.h"
-using namespace std;
-
 #include <string>
-#include <iostream>
-
 #include "Expression.h"
 #include <stack>
 #include <queue>
-#include <regex>
 #include <vector>
 #include <map>
-
+using namespace std;
 
 BinaryOperator::BinaryOperator(Expression *left1, Expression *right1) {
     this->left = left1;
@@ -92,18 +87,12 @@ double UMinus::calculate() {
     return (-1) * exp->calculate();;
 }
 
-//UMinus::UMinus(double num) : UnaryOperator(new Value(num)) {
-//}
-
 
 Value::Value(const double num) : value(num) {}
 
 double Value::calculate() {
     return value;
 }
-
-////why const double
-
 
 double Variable::calculate() {
     return value;
@@ -164,7 +153,7 @@ Expression *Interpreter::interpret(string str_exp) {
                 j++;
             }
             output.push(str_exp.substr(i, j - i));
-            if (last == 45 || last == 43) {
+            if ((last == 45 || last == 43)&&(i+1<str_exp.length() && (str_exp[i+1]!='/'&&str_exp[i+1]!='*'))) {
                 v = operators.top();
                 output.push(v);
                 operators.pop();

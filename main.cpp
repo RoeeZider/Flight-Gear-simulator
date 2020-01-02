@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "Command.h"
 #include "Interpreter.h"
+#include <time.h>
 
 using namespace std;
 //declarations
@@ -42,12 +43,14 @@ int main() {
         cout << "Error in opening file" << endl;
     }
 
-    std::cout << "myvector contains:";
     for (std::vector<string>::iterator it = commands.begin(); it != commands.end(); ++it)
         std::cout << *it + ',' << endl;
 
+
     parser(commands, mapCommands);
     commandsQueue.push("end_client");
+    symbol_table_from_simulator.insert(make_pair("end_client",1));
+    this_thread::sleep_for(chrono::seconds(7));
     return 0;
 }
 
